@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="version" content="v3.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:;">
+<title>Guitar Class - Peter</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f9f7f4;--surface:#ffffff;--surface2:#f0ede8;
+    --border:rgba(0,0,0,0.08);--accent:#cc6155;--accent2:#165f99;
+    --text:#1a1a2e;--muted:#7a8494;--danger:#cc6155;--success:#0d8a7a;
+    --melody:#cc6155;--tenor:#165f99;--alto:#0d8a7a;--bass:#38367d;--soprano:#a07a00;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  h1,h2,h3{font-family:'Playfair Display',serif;}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+  .nav-logo{font-family:'Playfair Display',serif;font-size:20px;color:var(--accent);font-weight:700;}
+  .nav-tabs{display:flex;gap:4px;}
+  .nav-tab{background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:7px 14px;border-radius:6px;cursor:pointer;transition:all .2s;}
+  .nav-tab:hover{color:var(--text);background:var(--surface2);}
+  .nav-tab.active{color:var(--accent);background:rgba(204,97,85,0.08);}
+  .nav-right{display:flex;gap:10px;align-items:center;}
+  .btn{padding:8px 18px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{background:#b85045;}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  .btn-ghost:hover{color:var(--text);border-color:rgba(0,0,0,0.2);}
+  .btn-sm{padding:5px 12px;font-size:12px;}
+  .btn-danger{background:rgba(204,97,85,0.1);color:var(--danger);border:1px solid rgba(204,97,85,0.25);}
+  .page{display:none;padding:32px;max-width:1100px;margin:0 auto;}
+  .page.active{display:block;}
+  .page-header{margin-bottom:28px;}
+  .page-header h2{font-size:28px;color:var(--text);margin-bottom:6px;}
+  .page-header p{color:var(--muted);font-size:14px;}
+  .cat-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;}
+  .cat-pill{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .2s;}
+  .cat-pill.active,.cat-pill:hover{border-color:var(--accent);color:var(--accent);background:rgba(204,97,85,0.06);}
+  .songs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+  .song-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color .2s,transform .2s;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+  .song-card:hover{border-color:rgba(204,97,85,0.3);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+  .song-card-top{padding:20px 20px 14px;}
+  .song-cat-badge{display:inline-block;font-size:10px;font-weight:500;padding:3px 8px;border-radius:4px;background:rgba(22,95,153,0.1);color:var(--accent2);margin-bottom:10px;letter-spacing:.04em;text-transform:uppercase;}
+  .song-title{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:4px;color:var(--text);}
+  .song-meta{font-size:12px;color:var(--muted);}
+  .parts-row{display:flex;gap:6px;flex-wrap:wrap;padding:12px 20px;border-top:1px solid var(--border);background:var(--surface2);}
+  .part-chip{font-size:11px;font-weight:500;padding:4px 10px;border-radius:20px;cursor:pointer;transition:opacity .2s;}
+  .part-chip:hover{opacity:.75;}
+  .chip-melody{background:rgba(204,97,85,0.12);color:var(--melody);}
+  .chip-tenor{background:rgba(22,95,153,0.12);color:var(--tenor);}
+  .chip-alto{background:rgba(13,138,122,0.12);color:var(--alto);}
+  .chip-bass{background:rgba(56,54,125,0.12);color:var(--bass);}
+  .chip-soprano{background:rgba(160,122,0,0.12);color:var(--soprano);}
+  .song-card-actions{display:flex;gap:8px;padding:12px 20px;border-top:1px solid var(--border);}
+  .upload-zone{border:2px dashed var(--border);border-radius:14px;padding:40px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface);}
+  .upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(204,97,85,0.03);}
+  .upload-icon{width:48px;height:48px;margin:0 auto 14px;opacity:.35;}
+  .upload-zone h3{font-size:16px;margin-bottom:6px;font-family:'DM Sans',sans-serif;font-weight:500;color:var(--text);}
+  .upload-zone p{color:var(--muted);font-size:13px;}
+  .upload-list{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
+  .upload-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:14px;}
+  .upload-item-icon{width:36px;height:36px;border-radius:8px;background:rgba(204,97,85,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .upload-item-icon svg{width:18px;height:18px;stroke:var(--accent);fill:none;}
+  .upload-item-info{flex:1;}
+  .upload-item-name{font-size:14px;font-weight:500;margin-bottom:2px;color:var(--text);}
+  .upload-item-meta{font-size:12px;color:var(--muted);}
+  .status-badge{font-size:11px;padding:3px 8px;border-radius:4px;font-weight:500;}
+  .status-pending{background:rgba(245,203,98,0.15);color:#a07a00;}
+  .status-approved{background:rgba(13,138,122,0.1);color:var(--success);}
+  .admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .admin-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+  .admin-qbtn{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .2s;font-family:'DM Sans',sans-serif;}
+  .admin-qbtn:hover{border-color:var(--accent);color:var(--accent);}
+  .admin-top-btn{background:rgba(204,97,85,0.06);border:1px solid rgba(204,97,85,0.2);border-radius:5px;padding:3px 10px;font-size:11px;color:var(--accent);cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;}
+  @media(max-width:640px){.admin-qbtn{font-size:10px;padding:4px 8px;}}
+  .admin-section h3{font-size:16px;font-weight:500;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;}
+  .form-group{margin-bottom:14px;}
+  .form-label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block;font-weight:500;letter-spacing:.03em;}
+  .form-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+  .form-input:focus{border-color:var(--accent);}
+  .form-input option{background:var(--surface);}
+  .form-row{display:flex;gap:10px;}
+  .form-row .form-group{flex:1;}
+  .parts-manager{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+  .part-row-item{display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:8px;padding:10px 12px;}
+  .part-file-name{font-size:12px;color:var(--muted);flex:1;}
+  .part-upload-btn{font-size:11px;padding:4px 10px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--text);cursor:pointer;white-space:nowrap;}
+  .part-upload-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .stats-row{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;flex:1;min-width:120px;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+  .stat-num{font-size:26px;font-family:'Playfair Display',serif;color:var(--accent);}
+  .stat-label{font-size:12px;color:var(--muted);margin-top:2px;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:520px;padding:28px;box-shadow:0 8px 32px rgba(0,0,0,0.12);}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .modal-title{font-size:18px;color:var(--text);}
+  .modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;z-index:999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;max-width:300px;box-shadow:0 4px 16px rgba(0,0,0,0.1);color:var(--text);}
+  .toast.show{opacity:1;transform:translateY(0);}
+  .admin-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .admin-table th{text-align:left;font-weight:500;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);font-size:11px;letter-spacing:.04em;text-transform:uppercase;}
+  .admin-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text);}
+  .admin-table tr:last-child td{border-bottom:none;}
+  .loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--muted);font-size:14px;gap:10px;}
+  .spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .progress-bar{height:4px;background:var(--surface2);border-radius:2px;margin-top:8px;overflow:hidden;display:none;}
+  .progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .2s;width:0%;}
+  @media(max-width:640px){
+    .admin-grid{grid-template-columns:1fr;}
+    .songs-grid{grid-template-columns:1fr;}
+    nav{padding:10px 12px;}
+    .page{padding:16px 12px;}
+    .nav-logo{font-size:13px;gap:5px !important;}
+    .nav-tab{font-size:10px;padding:5px 6px;font-weight:600;gap:3px;}
+    .nav-tab-label{display:none;}
+    .nav-tabs{gap:2px;}
+    .nav-right{gap:6px;}
+    .nav-right .btn-sm{padding:4px 8px;font-size:11px;}
+    .admin-section{padding:14px 12px;}
+    .form-row{flex-direction:column;gap:0;}
+    .form-row .form-group{flex:none;width:100%;}
+    .admin-section h3{font-size:14px;margin-bottom:12px;}
+    .btn{padding:8px 14px;font-size:12px;}
+    .btn-sm{padding:5px 10px;font-size:11px;}
+    .page-header h2{font-size:22px;}
+  }
+  @keyframes wv{0%,100%{transform:scaleY(1);}50%{transform:scaleY(0.4);}}
+  @keyframes waveRec{0%,100%{height:4px;}50%{height:24px;}}
+  .rec-bar{width:4px;border-radius:2px;background:var(--accent);animation:waveRec 0.8s ease-in-out infinite alternate;}
+  .rec-bar:nth-child(2){animation-delay:.1s;}.rec-bar:nth-child(3){animation-delay:.2s;}.rec-bar:nth-child(4){animation-delay:.3s;}.rec-bar:nth-child(5){animation-delay:.4s;}.rec-bar:nth-child(6){animation-delay:.15s;}.rec-bar:nth-child(7){animation-delay:.25s;}.rec-bar:nth-child(8){animation-delay:.35s;}.rec-bar:nth-child(9){animation-delay:.45s;}.rec-bar:nth-child(10){animation-delay:.05s;}.rec-bar:nth-child(11){animation-delay:.55s;}.rec-bar:nth-child(12){animation-delay:.45s;}
+  ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--surface2);}::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.15);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo" style="display:flex;align-items:center;gap:8px;white-space:nowrap;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14.5 2.5 C15.5 1.5 17 1.5 18 2.5 L21.5 6 C22.5 7 22.5 8.5 21.5 9.5 L20 11 L13 18 C13.5 19 13.3 20.3 12.5 21.2 C11.2 22.5 9 22.5 7.5 21.5 L6 20.5 C4.5 19.5 4 17.5 5 16 C5.5 15.2 6.3 14.7 7.2 14.5 L11 7 Z"/>
+      <line x1="16" y1="5" x2="19" y2="8"/>
+      <circle cx="9" cy="18" r="1.5" fill="var(--accent)" stroke="none"/>
+      <line x1="11.5" y1="10.5" x2="13.5" y2="12.5"/>
+    </svg>
+    Guitar Class - Peter
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="libraryNavBtn" onclick="showPage('library',this)" style="display:flex;align-items:center;gap:5px;padding:7px 10px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><path d="M9 19V6l12-3v13"/><circle cx="6" cy="19" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      <span class="nav-tab-label">Library</span>
+    </button>
+    <button class="nav-tab" onclick="showPage('upload',this)" style="display:flex;align-items:center;gap:5px;padding:7px 10px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0M12 19v3M9 22h6" stroke-linecap="round"/></svg>
+      <span class="nav-tab-label">Submit</span>
+    </button>
+    <button class="nav-tab" id="facilitatorsNavBtn" onclick="showPage('facilitators',this)" style="display:flex;align-items:center;gap:5px;padding:7px 10px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke-linecap="round"/></svg>
+      <span class="nav-tab-label">Reviews</span>
+    </button>
+    <button class="nav-tab" id="adminNavBtn" onclick="showPage('admin',this)" style="display:flex;align-items:center;gap:5px;padding:7px 10px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14" stroke-linecap="round"/></svg>
+      <span class="nav-tab-label">Admin</span>
+    </button>
+  </div>
+  <div class="nav-right">
+    <button id="signOutBtn" onclick="doLogout()" class="btn btn-ghost btn-sm" style="display:none">Sign Out</button>
+  </div>
+</nav>
+
+<!-- LIBRARY -->
+<div class="page" id="page-library">
+  <div class="page-header">
+    <h2>Song Library</h2>
+    <p>Browse songs, listen to voice parts, and watch reference videos</p>
+  </div>
+  <div class="cat-row" id="catFilter"><div class="cat-pill active" onclick="filterCat('all',this)">All</div></div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+    <span style="font-size:12px;color:var(--muted);">Sort by:</span>
+    <button class="cat-pill active" id="sortLesson" onclick="setSort('lesson',this)">Lesson ↓</button>
+    <button class="cat-pill" id="sortTitle" onclick="setSort('title',this)">Title A–Z</button>
+    <button class="cat-pill" id="sortCat" onclick="setSort('category',this)">Category</button>
+  </div>
+  <div id="songsGrid" class="songs-grid"><div class="loading"><div class="spinner"></div> Loading songs...</div></div>
+</div>
+
+<!-- SUBMIT HOMEWORK -->
+<div class="page" id="page-upload">
+  <div class="page-header">
+    <h2>Submit a Recording</h2>
+    <p>Upload your practice recording — no account needed, just enter your name</p>
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:20px;">
+    <div class="form-group">
+      <label class="form-label">Your Name <span style="color:var(--danger)">*</span></label>
+      <input class="form-input" type="text" id="uploaderName" placeholder="e.g. Sarah Lim" oninput="checkSubmitReady()">
+    </div>
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)" style="margin-bottom:16px;">
+      <svg class="upload-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M24 32V16M24 16l-6 6M24 16l6 6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8 32v4a4 4 0 004 4h24a4 4 0 004-4v-4" stroke-linecap="round"/>
+        <circle cx="24" cy="24" r="20" stroke-dasharray="4 4" opacity="0.3"/>
+      </svg>
+      <h3 id="dropTitle">Drop your Video file here</h3>
+      <p id="dropSub">MP4, MOV, AVI up to 50MB · <span style="color:var(--accent)">browse files</span></p>
+      <input type="file" id="fileInput" accept="video/*,.mp4,.mov,.avi,.mkv,.webm" style="display:none" onchange="handleFileSelect(this)">
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin:10px 0;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);">or record directly</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+    <div id="recordSection" style="background:var(--surface2);border-radius:12px;padding:16px;text-align:center;margin-bottom:16px;border:1px solid var(--border);">
+      <div id="recordIdle">
+        <div style="font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);margin-bottom:12px;">Tap to record from camera</div>
+        <button onclick="window.startRecording()" style="width:60px;height:60px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0b0b0d" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </button>
+        <div style="font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);">Camera access required</div>
+      </div>
+      <div id="recordActive" style="display:none;">
+        <div id="recTimer" style="font-size:22px;font-weight:500;color:var(--text);margin-bottom:8px;font-family:'DM Sans',sans-serif;">0:00</div>
+        <video id="recPreview" autoplay muted playsinline style="width:100%;max-width:320px;border-radius:8px;margin-bottom:10px;background:#000;"></video>
+        <div style="display:flex;gap:3px;align-items:center;justify-content:center;height:32px;margin-bottom:12px;"><div class="rec-bar"></div><div class="rec-bar"></div><div class="rec-bar"></div><div class="rec-bar"></div><div class="rec-bar"></div><div class="rec-bar"></div><div class="rec-bar"></div><div class="rec-bar"></div><div class="rec-bar"></div><div class="rec-bar"></div><div class="rec-bar"></div><div class="rec-bar"></div></div>
+        <button onclick="window.stopRecording()" style="width:60px;height:60px;border-radius:50%;background:#e05a5a;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"><div style="width:18px;height:18px;background:#fff;border-radius:3px;"></div></button>
+        <div style="font-family:'DM Sans',sans-serif;font-size:11px;color:#e05a5a;">Recording... tap to stop</div>
+      </div>
+      <div id="recordDone" style="display:none;">
+        <video id="recPlayback" controls playsinline style="width:100%;max-width:320px;border-radius:8px;margin-bottom:10px;background:#000;"></video>
+        <br>
+        <button onclick="window.reRecord()" style="font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);border:1px solid var(--border);background:none;border-radius:6px;padding:5px 12px;cursor:pointer;">↺ Re-record</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Choose Category <span style="color:var(--danger)">*</span></label>
+        <select class="form-input" id="uploadSongSelect" onchange="checkSubmitReady()">
+          <option value="">— choose category —</option>
+          <option value="Basic">Basic</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+          <option value="others">Others</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lesson</label>
+        <select class="form-input" id="uploadPartSelect">
+          <option value="">— select lesson —</option>
+          <option>Lesson 1</option><option>Lesson 2</option><option>Lesson 3</option><option>Lesson 4</option><option>Lesson 5</option><option>Lesson 6</option><option>Lesson 7</option><option>Lesson 8</option><option>Lesson 9</option><option>Lesson 10</option><option>Others</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note to admin (optional)</label>
+      <input class="form-input" type="text" id="uploadNote" placeholder="e.g. recorded on phone, please be kind!">
+    </div>
+    <div class="progress-bar" id="uploadProgress"><div class="progress-fill" id="uploadFill"></div></div>
+    <div id="uploadStatus" style="font-size:12px;color:var(--muted);margin-top:6px;display:none;"></div>
+    <button class="btn btn-primary" onclick="submitUpload()" id="submitUploadBtn" style="margin-top:10px;width:100%">Submit Recording</button>
+  </div>
+  <div>
+    <h3 style="font-size:16px;font-weight:500;margin-bottom:6px;font-family:'DM Sans',sans-serif;">Recent Submissions</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Submissions from this session</p>
+    <div class="upload-list" id="myUploadsList"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="page" id="page-admin">
+  <div class="page-header"><h2>Admin Panel</h2><p>Manage and Build</p></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;">
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-addsong')">+ Add Resource</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-songlist')">Resource List</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-categories')">Categories</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-lessons')">Lessons</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-facilitators')">Facilitators</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-recordings')">Recordings</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-seasons')">🎓 Seasons</button>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="statSongs">—</div><div class="stat-label">Songs</div></div>
+    <div class="stat-card"><div class="stat-num" id="statUploads">—</div><div class="stat-label">Member Uploads</div></div>
+    <div class="stat-card"><div class="stat-num" id="statCats">—</div><div class="stat-label">Categories</div></div>
+  </div>
+  <div class="admin-grid">
+    <div class="admin-section" id="sec-addsong">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 id="songFormTitle" style="margin:0;padding:0;border:none;">Add Resource</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+      <div class="form-group">
+        <label class="form-label">Song Title</label>
+        <input class="form-input" id="adminSongTitle" type="text" placeholder="e.g. Amazing Grace">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lesson</label>
+        <select class="form-input" id="adminSongLesson">
+          <option value="">— no lesson —</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-input" id="adminSongCat"><option value="">— select —</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">YouTube Link</label>
+          <input class="form-input" id="adminSongYT" type="text" placeholder="https://youtube.com/...">
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+            <span style="font-size:11px;color:var(--muted);">upload video/audio</span>
+            <label class="part-upload-btn" style="cursor:pointer;">
+              Browse Files
+              <input type="file" id="adminSongVideo" accept="video/*,audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mp4,.mov" style="display:none" onchange="handleSongVideo(this)">
+            </label>
+            <span id="adminSongVideoName" style="font-size:11px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+          </div>
+          <div class="progress-bar" id="videoProgress"><div class="progress-fill" id="videoFill"></div></div>
+          <div id="videoStatus" style="font-size:11px;color:var(--muted);margin-top:4px;display:none;"></div>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label class="form-label">Documents</label>
+        <div class="parts-manager" id="partsManager"></div>
+        <button class="btn btn-ghost btn-sm" onclick="addPartRow()">+ Add</button>
+      </div>
+      <div class="progress-bar" id="songProgress"><div class="progress-fill" id="songFill"></div></div>
+      <div id="songStatus" style="font-size:12px;color:var(--muted);margin-top:6px;display:none;"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--text);">Publish to Library</div>
+            <div style="font-size:11px;color:var(--muted);">Members can see this song</div>
+          </div>
+          <label style="display:flex;align-items:center;cursor:pointer;gap:8px;">
+            <input type="checkbox" id="adminSongPublish" checked style="display:none;">
+            <div id="publishToggle" onclick="this.classList.toggle('on');const c=this.classList.contains('on');document.getElementById('adminSongPublish').checked=c;this.style.background=c?'var(--accent)':'var(--surface2)';this.querySelector('div').style.left=c?'23px':'3px';" style="width:44px;height:24px;border-radius:12px;background:var(--accent);position:relative;cursor:pointer;transition:background .2s;" class="on">
+              <div id="publishToggleDot" style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:23px;transition:left .2s;"></div>
+            </div>
+          </label>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" style="flex:1" id="saveDraftBtn" onclick="window.adminSaveSong('draft')">Save as Draft</button>
+          <button class="btn btn-primary" style="flex:1" id="saveSongBtn" onclick="window.adminSaveSong()">Save</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="cancelEditBtn" style="display:none" onclick="cancelEditSong()">Cancel</button>
+      </div>
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+        <div id="sec-songlist" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><h3 style="font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;margin:0;">Resource List</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+        <div id="adminSongList"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="admin-section" id="sec-categories">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Manage Categories</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+          <input class="form-input" id="newCatInput" type="text" placeholder="New category name..." style="flex:1;margin-bottom:0;">
+          <button class="btn btn-primary btn-sm" style="flex-shrink:0;" onclick="adminAddCat()">Add</button>
+        </div>
+        <div id="adminCatList" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+      <div class="admin-section" id="sec-lessons">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Manage Lessons</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+          <input class="form-input" id="newLessonInput" type="text" placeholder="e.g. Lesson 1, Week 1..." style="flex:1;margin-bottom:0;">
+          <button class="btn btn-primary btn-sm" style="flex-shrink:0;" onclick="adminAddLesson()">Add</button>
+        </div>
+        <div style="display:flex;gap:6px;margin:10px 0 8px;align-items:center;">
+          <span style="font-size:11px;color:var(--muted);">Sort:</span>
+          <button class="cat-pill active" id="lsortNum" onclick="setLessonSort('numeric',this)">Lesson ↓</button>
+          <button class="cat-pill" id="lsortAZ" onclick="setLessonSort('az',this)">A–Z</button>
+        </div>
+        <div id="adminLessonList" style="display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="admin-section" id="sec-facilitators" style="margin-top:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Manage Facilitators</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+      <input class="form-input" id="newFacInput" type="text" placeholder="Facilitator name..." style="flex:1;margin-bottom:0;">
+      <button class="btn btn-primary btn-sm" style="flex-shrink:0;" onclick="window.adminAddFac()">Add</button>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label class="form-label">Shared Facilitator Password</label>
+      <div id="facPwDisplay" style="font-size:12px;color:var(--accent);background:rgba(176,141,87,0.08);border:1px solid rgba(176,141,87,0.2);border-radius:6px;padding:6px 10px;margin-bottom:8px;">No password set yet.</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input class="form-input" id="facPasswordInput" type="text" placeholder="e.g. Choir2024" style="flex:1;margin-bottom:0;">
+        <button class="btn btn-primary btn-sm" style="flex-shrink:0;" onclick="window.adminSaveFacPassword()">Save</button>
+      </div>
+    </div>
+    <div id="adminFacList" style="display:flex;flex-direction:column;gap:6px;"></div>
+  </div>
+  <div class="admin-section" id="sec-recordings" style="margin-top:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Member Recordings</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+    <div id="adminUploadsWrap"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+  </div>
+  <!-- SEASON SECTION -->
+  <div class="admin-section" id="sec-seasons" style="margin-top:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+      <h3 style="margin:0;padding:0;border:none;">🎓 Season Management</h3>
+      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button>
+    </div>
+    <!-- Current season banner -->
+    <div id="seasonBanner" style="margin-bottom:16px;"></div>
+    <!-- Graduate button -->
+    <button onclick="window.openGraduateModal()" class="btn btn-primary" style="width:100%;margin-bottom:20px;" id="graduateBtn">🎓 Graduate Current Season</button>
+    <!-- Archive list -->
+    <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;">Past Seasons</div>
+    <div id="archiveList"></div>
+  </div>
+
+  <!-- GRADUATE MODAL -->
+  <div class="modal-overlay" id="graduateModal" onclick="closeModalOuter(event,'graduateModal')">
+    <div class="modal" style="max-width:380px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🎓 Graduate Season</h3>
+        <button class="modal-close" onclick="closeModal('graduateModal')">✕</button>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;" id="graduateModalSub">Season 1 will be archived. Choose what to do with facilitators:</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        <label style="display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:8px;padding:10px 12px;cursor:pointer;border:1px solid var(--border);" id="keepFacLabel">
+          <input type="radio" name="facChoice" value="keep" checked style="accent-color:var(--accent);">
+          <div>
+            <div style="font-size:13px;color:var(--text);font-weight:500;">Keep same facilitators</div>
+            <div style="font-size:11px;color:var(--muted);">Carry over to next season</div>
+          </div>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:8px;padding:10px 12px;cursor:pointer;border:1px solid var(--border);">
+          <input type="radio" name="facChoice" value="reset" style="accent-color:var(--accent);">
+          <div>
+            <div style="font-size:13px;color:var(--text);font-weight:500;">Reset facilitators</div>
+            <div style="font-size:11px;color:var(--muted);">Start fresh for next season</div>
+          </div>
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">New Season Name</label>
+        <input class="form-input" id="newSeasonName" type="text" placeholder="e.g. Season 2">
+      </div>
+      <div style="background:rgba(224,90,90,0.06);border:1px solid rgba(224,90,90,0.2);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:11px;color:#e07a7a;line-height:1.6;">
+        ⚠️ All current submissions & feedback will be archived. Songs, lessons and categories are kept.
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" style="flex:1;" onclick="closeModal('graduateModal')">Cancel</button>
+        <button class="btn btn-primary" style="flex:2;" onclick="window.confirmGraduate()">Confirm & Graduate →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHIVE VIEW MODAL -->
+  <div class="modal-overlay" id="archiveViewModal" onclick="closeModalOuter(event,'archiveViewModal')">
+    <div class="modal" style="max-width:420px;max-height:80vh;overflow-y:auto;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="archiveViewTitle">Season Archive</h3>
+        <button class="modal-close" onclick="closeModal('archiveViewModal')">✕</button>
+      </div>
+      <div id="archiveViewContent"></div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-addsong')">↑ Add Resource</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-songlist')">↑ Resource List</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-categories')">↑ Categories</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-lessons')">↑ Lessons</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-facilitators')">↑ Facilitators</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-recordings')">↑ Recordings</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-seasons')">🎓 Seasons</button>
+  </div>
+</div>
+
+<!-- Login modal removed - using secret URL -->
+
+
+<!-- FACILITATORS PAGE -->
+<div class="page" id="page-facilitators">
+
+  <!-- LOGIN STATE -->
+  <div id="facLoginState">
+    <div style="background:var(--surface);border-radius:14px;padding:28px 24px;margin-bottom:24px;position:relative;overflow:hidden;border:1px solid var(--border);">
+      <div style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;opacity:0.06;">
+        <div style="height:1px;background:var(--accent);margin:16px 0;"></div><div style="height:1px;background:var(--accent);margin:16px 0;"></div><div style="height:1px;background:var(--accent);margin:16px 0;"></div><div style="height:1px;background:var(--accent);margin:16px 0;"></div><div style="height:1px;background:var(--accent);margin:16px 0;"></div>
+      </div>
+      <div style="position:relative;text-align:center;">
+        <div style="width:56px;height:56px;border-radius:14px;background:var(--surface2);border:1px solid rgba(204,97,85,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-family:Georgia,serif;font-size:26px;color:var(--accent);">♪</div>
+        <h2 style="font-size:20px;color:var(--text);margin-bottom:6px;font-family:'Playfair Display',serif;">Facilitator Login</h2>
+        <p style="color:var(--muted);font-size:13px;font-family:'DM Sans',sans-serif;">Select your name and enter password</p>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div class="form-group">
+        <label class="form-label">Your Name</label>
+        <select class="form-input" id="facNameSelect"><option value="">— select your name —</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="facPassword" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')window.facLogin()">
+      </div>
+      <button class="btn btn-primary" style="width:100%;" onclick="window.facLogin()">Sign In</button>
+    </div>
+  </div>
+
+  <!-- LOGGED IN STATE -->
+  <div id="facMainState" style="display:none;">
+    <!-- Header bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:13px;color:var(--muted);">Signed in as <strong style="color:var(--accent);" id="facWelcomeName"></strong></div>
+      <button onclick="window.facSignOut()" style="font-size:11px;color:var(--muted);border:1px solid var(--border);background:none;border-radius:6px;padding:4px 10px;cursor:pointer;">Sign Out</button>
+    </div>
+
+    <!-- Lesson filter -->
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:500;">Filter by Lesson</div>
+    <div id="facLessonPills" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;"></div>
+
+    <!-- Submissions list -->
+    <div id="facSubmissionsList"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="loginModal" onclick="closeModalOuter(event,'loginModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Admin Login</h3>
+      <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="adminPassword" type="password" placeholder="••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- PART MODAL -->
+<div class="modal-overlay" id="partModal" onclick="closeModalOuter(event,'partModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="partModalTitle">Voice Part</h3>
+      <button class="modal-close" onclick="closeModal('partModal')">✕</button>
+    </div>
+    <div id="partModalContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const CLOUD_NAME = 'dyg9hxapf';
+const UPLOAD_PRESET = 'guitar-class';
+const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`;
+
+const app = initializeApp({
+  apiKey: "AIzaSyDQ8zkF_nl3ZWxOa3BokfQ47nLEv2yo5BA",
+  authDomain: "guitar-class-app-ccaf3.firebaseapp.com",
+  projectId: "guitar-class-app-ccaf3",
+  storageBucket: "guitar-class-app-ccaf3.firebasestorage.app",
+  messagingSenderId: "378121065509",
+  appId: "1:378121065509:web:632835532ffadbfaea1bcc"
+});
+const db = getFirestore(app);
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const S = {
+  isAdmin:false, songs:[], categories:[], uploads:[], lessons:[], seasons:[], facilitators:[], currentSeason:null,
+  sessionIds:[], pendingFile:null, partRows:[], editingId:null, currentCat:'all', currentSort:'lesson', lessonAsc:false, lessonSortMode:'numeric', _catOrderLocked:false, _catDraggedOnce:false
+};
+window._S = S;
+
+// ── CLOUDINARY UPLOAD ─────────────────────────────────────────────────────────
+async function uploadToCloudinary(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', UPLOAD_PRESET);
+    // Auto-detect resource type: image for images, video for video/audio, raw for everything else
+    let resourceType = 'raw';
+    if(file.type.startsWith('image/')) resourceType = 'image';
+    else if(file.type.startsWith('video/') || file.type.startsWith('audio/')) resourceType = 'video';
+    fd.append('resource_type', resourceType);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`);
+    xhr.upload.onprogress = e => { if(e.lengthComputable && onProgress) onProgress(Math.round(e.loaded/e.total*100)); };
+    xhr.onload = () => {
+      const res = JSON.parse(xhr.responseText);
+      if(res.secure_url) resolve(res.secure_url);
+      else reject(new Error(res.error?.message || 'Upload failed'));
+    };
+    xhr.onerror = () => reject(new Error('Network error'));
+    xhr.send(fd);
+  });
+}
+
+// ── FETCH DATA ────────────────────────────────────────────────────────────────
+async function fetchCats() {
+  if(S._catOrderLocked) return;
+  try {
+    const snap = await getDocs(collection(db,'categories'));
+    const fetched = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order!=null?a.order:999)-(b.order!=null?b.order:999));
+    // Preserve drag order - only add new or remove deleted, keep existing order
+    if(S._catDraggedOnce) {
+      const existingIds = S.categories.map(c=>c.id);
+      const fetchedIds = fetched.map(c=>c.id);
+      // Remove deleted
+      S.categories = S.categories.filter(c=>fetchedIds.includes(c.id));
+      // Update names
+      S.categories = S.categories.map(c=>({...c,...fetched.find(f=>f.id===c.id)}));
+      // Add new ones at end
+      fetched.forEach(f=>{ if(!existingIds.includes(f.id)) S.categories.push(f); });
+    } else {
+      S.categories = fetched;
+    }
+    renderCatFilter(); window.renderAdminCats(); renderCatSelect();
+  } catch(e) {}
+}
+
+async function fetchAll(skipCats=false) {
+  try {
+    const [songSnap, uploadSnap, lessonSnap] = await Promise.all([
+      getDocs(collection(db,'songs')),
+      getDocs(collection(db,'uploads')),
+      getDocs(collection(db,'lessons'))
+    ]);
+    S.songs = songSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)));
+    S.uploads = uploadSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)));
+    S.lessons = lessonSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order!=null?a.order:999)-(b.order!=null?b.order:999));
+    if(!skipCats) await fetchCats();
+    // Fetch seasons
+    const seasonSnap=await getDocs(collection(db,'seasons'));
+    S.seasons=seasonSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.number||0)-(b.number||0));
+    S.currentSeason=S.seasons.find(s=>s.active)||null;
+    if(!S.currentSeason&&S.seasons.length===0){
+      // Auto-create Season 1 if none exists
+      const ref=await addDoc(collection(db,'seasons'),{number:1,name:'Season 1',active:true,startDate:new Date().toISOString().split('T')[0],studentCount:0,recordingCount:0});
+      S.seasons=[{id:ref.id,number:1,name:'Season 1',active:true}];
+      S.currentSeason=S.seasons[0];
+    }
+    // Fetch facilitators + password
+    const [facSnap, settingsSnap] = await Promise.all([
+      getDocs(collection(db,'facilitators')),
+      getDocs(collection(db,'settings'))
+    ]);
+    settingsSnap.docs.forEach(d=>{if(d.id==='facPassword'||d.data().id==='facPassword') S._facPw=d.data().value||'';});
+    S.facilitators=facSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.name.localeCompare(b.name));
+    renderAdminFacList(); renderFacNameSelect();
+    renderSeasonBanner(); renderArchiveList();
+    if(getFacSession()&&document.getElementById('facMainState')?.style.display!=='none'){renderFacLessonPills();renderFacSubmissions();}
+    renderLibrary(); renderAdminSongList(); renderSongSelect();
+    renderAdminUploads(); renderMyUploads();
+    renderAdminLessons(); renderLessonSelect();
+    updateStats();
+  } catch(e) { console.error('Fetch error:', e); showToast('Connection error: '+e.message); }
+}
+
+// Restore block moved below — after function definitions
+
+
+// ── FACILITATORS ──────────────────────────────────────────────────────────────
+const FAC_PW_KEY = 'vh_fac_pw';
+const FAC_SESSION_KEY = 'vh_fac_name';
+
+function getFacPassword(){
+  return S._facPw||'';
+}
+function setFacPassword(pw){
+  S._facPw=pw;
+}
+function getFacSession(){
+  try{return sessionStorage.getItem(FAC_SESSION_KEY)||'';}catch(e){return '';}
+}
+function setFacSession(name){
+  try{sessionStorage.setItem(FAC_SESSION_KEY,name);}catch(e){}
+}
+function clearFacSession(){
+  try{sessionStorage.removeItem(FAC_SESSION_KEY);}catch(e){}
+}
+
+function renderFacNameSelect(){
+  const el=document.getElementById('facNameSelect');
+  if(!el)return;
+  el.innerHTML='<option value="">— select your name —</option>'
+    +S.facilitators.map(f=>`<option value="${f.name}">${f.name}</option>`).join('');
+}
+
+function renderAdminFacList(){
+  const el=document.getElementById('adminFacList');
+  if(!el)return;
+  if(!S.facilitators.length){el.innerHTML='<p style="font-size:12px;color:var(--muted);">No facilitators added yet.</p>';return;}
+  el.innerHTML=S.facilitators.map(f=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:8px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:rgba(176,141,87,0.15);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--accent);flex-shrink:0;">${f.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>
+      <div style="flex:1;font-size:13px;font-weight:500;color:var(--text);">${f.name}</div>
+      <button onclick="window.adminDeleteFac('${f.id}')" style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(224,90,90,0.08);border:1px solid rgba(224,90,90,0.3);color:#e05a5a;cursor:pointer;">Remove</button>
+    </div>`).join('');
+  // Show current password
+  const pwInput=document.getElementById('facPasswordInput');
+  if(pwInput) pwInput.value=getFacPassword();
+  // Show password display
+  const pwDisplay=document.getElementById('facPwDisplay');
+  if(pwDisplay) pwDisplay.textContent=getFacPassword()?`Current password: ${getFacPassword()}`:'No password set yet.';
+}
+
+function renderFacLessonPills(){
+  const el=document.getElementById('facLessonPills');
+  if(!el)return;
+  const lessons=[...new Set(S.uploads.map(u=>u.lesson||'').filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  const all=['All',...lessons];
+  el.innerHTML=all.map((l,i)=>`
+    <button onclick="window.filterFacLesson('${l}')" id="facPill_${l.replace(/\s/g,'_')}" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid ${i===0?'var(--accent)':'rgba(255,255,255,0.08)'};color:${i===0?'var(--accent)':'var(--muted)'};background:${i===0?'rgba(176,141,87,0.08)':'var(--surface)'};cursor:pointer;font-family:'DM Sans',sans-serif;">${l}</button>`).join('');
+  S._facLesson='All';
+}
+
+window.filterFacLesson=(lesson)=>{
+  S._facLesson=lesson;
+  document.querySelectorAll('[id^="facPill_"]').forEach(b=>{
+    const active=b.id===`facPill_${lesson.replace(/\s/g,'_')}`;
+    b.style.borderColor=active?'var(--accent)':'rgba(255,255,255,0.08)';
+    b.style.color=active?'var(--accent)':'var(--muted)';
+    b.style.background=active?'rgba(176,141,87,0.08)':'var(--surface)';
+  });
+  renderFacSubmissions();
+};
+
+function renderFacSubmissions(){
+  const el=document.getElementById('facSubmissionsList');
+  if(!el)return;
+  const facName=getFacSession();
+  let list=[...S.uploads];
+  if(S._facLesson&&S._facLesson!=='All') list=list.filter(u=>u.lesson===S._facLesson);
+  list.sort((a,b)=>(a.submittedBy||'').localeCompare(b.submittedBy||''));
+  if(!list.length){el.innerHTML='<p style="font-size:13px;color:var(--muted);padding:20px 0;text-align:center;">No submissions found.</p>';return;}
+  el.innerHTML=list.map(u=>`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;">
+      ${u.url?`<audio id="facAud_${u.id}" src="${u.url}" style="display:none"></audio>`:''}
+      <div style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="window.toggleFacCard('${u.id}')">
+        <div style="width:36px;height:36px;border-radius:50%;background:rgba(176,141,87,0.12);border:1px solid rgba(176,141,87,0.25);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0;">${(u.submittedBy||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);">${u.submittedBy||'Unknown'}</div>
+          <div style="font-size:11px;color:var(--muted);">${u.songTitle||''} · <span style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:10px;background:rgba(176,141,87,0.12);color:var(--accent);">${u.part||''}</span></div>
+        </div>
+        <button onclick="event.stopPropagation();window.toggleFacPlay('${u.id}')" style="width:34px;height:34px;border-radius:50%;background:rgba(176,141,87,0.12);border:1px solid rgba(176,141,87,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+          <div id="facPlayIcon_${u.id}" style="width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:9px solid var(--accent);margin-left:2px;"></div>
+        </button>
+      </div>
+      <div id="facCard_${u.id}" style="display:none;">
+        <div style="padding:0 14px 10px;">
+          <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-bottom:4px;"><div id="facProg_${u.id}" style="width:0%;height:100%;background:var(--accent);border-radius:2px;transition:width .1s;"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);"><span id="facTime_${u.id}">0:00</span><span>${u.fileName||''}</span></div>
+        </div>
+        <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.15);">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
+            Feedback
+            <span style="background:rgba(176,141,87,0.12);color:var(--accent);padding:1px 6px;border-radius:10px;font-size:9px;">${(u.facFeedback||[]).length}</span>
+          </div>
+          ${(u.facFeedback||[]).length?u.facFeedback.map(fb=>`
+            <div style="background:var(--surface);border-radius:8px;padding:9px 11px;margin-bottom:6px;border-left:2px solid var(--accent);">
+              <div style="font-size:10px;font-weight:600;color:var(--accent);margin-bottom:3px;display:flex;justify-content:space-between;">
+                ${fb.name}<span style="color:var(--muted);font-weight:400;">${fb.time||''}</span>
+              </div>
+              <div style="font-size:12px;color:var(--text);line-height:1.5;">${fb.text}</div>
+            </div>`).join(''):''}
+          <textarea id="facFbInput_${u.id}" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;resize:none;height:56px;box-sizing:border-box;margin-top:4px;" placeholder="Add feedback as ${facName}..."></textarea>
+          <button onclick="window.submitFacFeedback('${u.id}')" style="margin-top:6px;background:var(--accent);color:#0b0b0d;border:none;border-radius:6px;padding:5px 14px;font-size:11px;font-weight:600;cursor:pointer;">Send</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.toggleFacCard=(id)=>{
+  const el=document.getElementById(`facCard_${id}`);
+  if(el) el.style.display=el.style.display==='none'?'block':'none';
+};
+
+let _facAudios={};
+window.toggleFacPlay=(id)=>{
+  const aud=document.getElementById(`facAud_${id}`);
+  if(!aud)return;
+  if(_facAudios[id]&&!_facAudios[id].paused){
+    _facAudios[id].pause();
+    document.getElementById(`facPlayIcon_${id}`).style.borderLeft='9px solid var(--accent)';
+    document.getElementById(`facPlayIcon_${id}`).style.borderTop='5px solid transparent';
+    document.getElementById(`facPlayIcon_${id}`).style.borderBottom='5px solid transparent';
+    document.getElementById(`facPlayIcon_${id}`).style.width='0';
+    document.getElementById(`facPlayIcon_${id}`).style.height='0';
+    return;
+  }
+  Object.values(_facAudios).forEach(a=>a.pause());
+  _facAudios[id]=new Audio(aud.src);
+  _facAudios[id].ontimeupdate=()=>{
+    const p=(_facAudios[id].currentTime/_facAudios[id].duration*100)||0;
+    const prog=document.getElementById(`facProg_${id}`);
+    const timeEl=document.getElementById(`facTime_${id}`);
+    if(prog)prog.style.width=p+'%';
+    if(timeEl){const t=Math.floor(_facAudios[id].currentTime);timeEl.textContent=Math.floor(t/60)+':'+(t%60<10?'0':'')+t%60;}
+  };
+  _facAudios[id].onended=()=>{
+    const prog=document.getElementById(`facProg_${id}`);
+    if(prog)prog.style.width='0%';
+  };
+  _facAudios[id].play();
+  // Show card
+  const card=document.getElementById(`facCard_${id}`);
+  if(card) card.style.display='block';
+};
+
+window.submitFacFeedback=async(id)=>{
+  const facName=getFacSession();
+  const input=document.getElementById(`facFbInput_${id}`);
+  if(!input||!input.value.trim()){showToast('Please write feedback first.');return;}
+  const upload=S.uploads.find(u=>u.id===id);
+  if(!upload)return;
+  const existing=upload.facFeedback||[];
+  const now=new Date();
+  const timeStr=now.toLocaleDateString('en-SG',{day:'numeric',month:'short'})+' '+now.toLocaleTimeString('en-SG',{hour:'2-digit',minute:'2-digit'});
+  existing.push({name:facName,text:input.value.trim(),time:timeStr,ts:Date.now()});
+  await updateDoc(doc(db,'uploads',id),{facFeedback:existing});
+  await fetchAll(true);
+  showToast('Feedback sent!');
+};
+
+window.facLogin=async()=>{
+  const name=document.getElementById('facNameSelect').value;
+  const pw=document.getElementById('facPassword').value;
+  if(!name){showToast('Please select your name.');return;}
+  // Reload latest password from Firebase in case not loaded yet
+  try{
+    const snap=await getDocs(collection(db,'settings'));
+    snap.docs.forEach(d=>{if(d.id==='facPassword') S._facPw=d.data().value||'';});
+  }catch(e){}
+  const savedPw=getFacPassword();
+  if(!savedPw){showToast('No password set. Ask admin to set one first.');return;}
+  if(pw!==savedPw){showToast('Wrong password. Try again.');document.getElementById('facPassword').value='';return;}
+  setFacSession(name);
+  setPageStore('facilitators');
+  document.getElementById('facLoginState').style.display='none';
+  document.getElementById('facMainState').style.display='block';
+  document.getElementById('facWelcomeName').textContent=name;
+  renderFacLessonPills();
+  renderFacSubmissions();
+  showToast('Welcome, '+name+'!');
+};
+
+window.facSignOut=()=>{
+  clearFacSession();
+  setPageStore('facilitators');
+  document.getElementById('facLoginState').style.display='block';
+  document.getElementById('facMainState').style.display='none';
+  document.getElementById('facPassword').value='';
+  showToast('Signed out.');
+};
+
+window.adminAddFac=async()=>{
+  const name=document.getElementById('newFacInput').value.trim();
+  if(!name){showToast('Please enter a name.');return;}
+  await addDoc(collection(db,'facilitators'),{name,createdAt:serverTimestamp()});
+  document.getElementById('newFacInput').value='';
+  await fetchAll(true);
+  showToast(name+' added!');
+};
+
+window.adminDeleteFac=async(id)=>{
+  if(!confirm('Remove this facilitator?'))return;
+  await deleteDoc(doc(db,'facilitators',id));
+  await fetchAll(true);
+  showToast('Removed.');
+};
+
+window.adminSaveFacPassword=async()=>{
+  const pw=document.getElementById('facPasswordInput').value.trim();
+  if(!pw){showToast('Please enter a password.');return;}
+  // Save to Firebase settings collection
+  await setDoc(doc(db,'settings','facPassword'),{value:pw});
+  S._facPw=pw;
+  showToast('Password saved!');
+};
+
+
+// ── SEASONS ───────────────────────────────────────────────────────────────────
+
+function renderSeasonBanner(){
+  const el=document.getElementById('seasonBanner');
+  const gb=document.getElementById('graduateBtn');
+  if(!el)return;
+  const s=S.currentSeason;
+  if(!s){el.innerHTML='<p style="font-size:13px;color:var(--muted);">No active season.</p>';return;}
+  const count=S.uploads.filter(u=>u.seasonId===s.id).length;
+  el.innerHTML=`
+    <div style="background:linear-gradient(135deg,rgba(176,141,87,0.12),rgba(176,141,87,0.04));border:1px solid rgba(176,141,87,0.3);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;">
+      <div style="background:rgba(176,141,87,0.15);border:1px solid rgba(176,141,87,0.4);border-radius:10px;padding:8px 12px;text-align:center;flex-shrink:0;">
+        <div style="font-size:22px;font-weight:700;color:var(--accent);font-family:'Playfair Display',serif;line-height:1;">${s.number}</div>
+        <div style="font-size:8px;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Season</div>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px;">${s.name} <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:rgba(90,184,160,0.1);color:#5ab8a0;border:1px solid rgba(90,184,160,0.3);">● Active</span></div>
+        <div style="font-size:11px;color:var(--muted);">Started ${s.startDate||'—'} · ${count} recordings · ${(S.facilitators||[]).length} facilitators</div>
+      </div>
+    </div>`;
+  if(gb) gb.textContent=`🎓 Graduate ${s.name} →`;
+}
+
+function renderArchiveList(){
+  const el=document.getElementById('archiveList');
+  if(!el)return;
+  const past=S.seasons.filter(s=>!s.active).sort((a,b)=>b.number-a.number);
+  if(!past.length){el.innerHTML='<p style="font-size:12px;color:var(--muted);">No archived seasons yet.</p>';return;}
+  el.innerHTML=past.map(s=>`
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;opacity:0.85;">
+      <div style="background:rgba(107,114,128,0.15);border:1px solid rgba(107,114,128,0.3);border-radius:8px;padding:6px 10px;text-align:center;flex-shrink:0;">
+        <div style="font-size:18px;font-weight:700;color:#6b7280;font-family:'Playfair Display',serif;line-height:1;">${s.number}</div>
+        <div style="font-size:8px;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-top:1px;">Season</div>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px;">${s.name}</div>
+        <div style="font-size:11px;color:var(--muted);">${s.startDate||'—'} → ${s.endDate||'—'} · ${s.recordingCount||0} recordings</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <button onclick="window.viewArchive('${s.id}')" style="font-size:10px;padding:4px 10px;border-radius:5px;background:rgba(124,154,176,0.1);border:1px solid rgba(124,154,176,0.3);color:#7c9ab0;cursor:pointer;white-space:nowrap;">👁 View</button>
+        <button onclick="window.downloadArchivePDF('${s.id}')" style="font-size:10px;padding:4px 10px;border-radius:5px;background:rgba(176,141,87,0.1);border:1px solid rgba(176,141,87,0.3);color:var(--accent);cursor:pointer;white-space:nowrap;">↓ PDF</button>
+      </div>
+    </div>`).join('');
+}
+
+window.openGraduateModal=()=>{
+  if(!S.currentSeason){showToast('No active season.');return;}
+  const nextNum=(S.currentSeason.number||1)+1;
+  document.getElementById('newSeasonName').value=`Season ${nextNum}`;
+  document.getElementById('graduateModalSub').textContent=`${S.currentSeason.name} will be archived. Choose what to do with facilitators:`;
+  openModal('graduateModal');
+};
+
+window.confirmGraduate=async()=>{
+  if(!S.currentSeason){return;}
+  const facChoice=document.querySelector('input[name="facChoice"]:checked')?.value||'keep';
+  const newName=document.getElementById('newSeasonName').value.trim()||`Season ${(S.currentSeason.number||1)+1}`;
+  const btn=document.querySelector('#graduateModal .btn-primary');
+  btn.disabled=true; btn.textContent='Graduating...';
+  try{
+    const currentUploads=S.uploads.filter(u=>u.seasonId===S.currentSeason.id);
+    // Archive current season
+    await updateDoc(doc(db,'seasons',S.currentSeason.id),{
+      active:false,
+      endDate:new Date().toISOString().split('T')[0],
+      recordingCount:currentUploads.length,
+      studentCount:[...new Set(currentUploads.map(u=>u.submittedBy))].length
+    });
+    // Reset facilitators if chosen
+    if(facChoice==='reset'){
+      for(const f of S.facilitators){
+        await deleteDoc(doc(db,'facilitators',f.id));
+      }
+    }
+    // Create new season
+    const nextNum=(S.currentSeason.number||1)+1;
+    await addDoc(collection(db,'seasons'),{
+      number:nextNum,
+      name:newName,
+      active:true,
+      startDate:new Date().toISOString().split('T')[0]
+    });
+    closeModal('graduateModal');
+    await fetchAll();
+    showToast(`${S.currentSeason?.name||'Season'} graduated! ${newName} started 🎉`);
+  }catch(e){
+    showToast('Error: '+e.message);
+  }
+  btn.disabled=false; btn.textContent='Confirm & Graduate →';
+};
+
+window.viewArchive=async(seasonId)=>{
+  const season=S.seasons.find(s=>s.id===seasonId);
+  if(!season)return;
+  document.getElementById('archiveViewTitle').textContent=season.name+' — Archive';
+  const uploads=S.uploads.filter(u=>u.seasonId===seasonId);
+  const lessons=[...new Set(uploads.map(u=>u.lesson||'No Lesson').filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  const students=[...new Set(uploads.map(u=>u.submittedBy))];
+  const totalFeedback=uploads.reduce((t,u)=>t+(u.facFeedback||[]).length+(u.feedback?1:0),0);
+  let html=`
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:60px;background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:700;color:var(--accent);font-family:'Playfair Display',serif;">${students.length}</div>
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Students</div>
+      </div>
+      <div style="flex:1;min-width:60px;background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:700;color:var(--accent);font-family:'Playfair Display',serif;">${uploads.length}</div>
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Recordings</div>
+      </div>
+      <div style="flex:1;min-width:60px;background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:700;color:var(--accent);font-family:'Playfair Display',serif;">${totalFeedback}</div>
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Feedback</div>
+      </div>
+      <div style="flex:1;min-width:60px;background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:700;color:var(--accent);font-family:'Playfair Display',serif;">${lessons.length}</div>
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Lessons</div>
+      </div>
+    </div>`;
+  if(lessons.length){
+    lessons.forEach(lesson=>{
+      const lu=uploads.filter(u=>(u.lesson||'No Lesson')===lesson);
+      html+=`<div style="margin-bottom:12px;"><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);">${lesson}</div>`;
+      lu.forEach(u=>{
+        const fb=(u.facFeedback||[]).length+(u.feedback?1:0);
+        html+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
+          <div style="width:26px;height:26px;border-radius:50%;background:rgba(107,114,128,0.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#9ca3af;flex-shrink:0;">${(u.submittedBy||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>
+          <div style="flex:1;font-size:12px;color:var(--text);">${u.submittedBy||'Unknown'}</div>
+          <span style="font-size:9px;padding:1px 6px;border-radius:10px;background:rgba(107,114,128,0.15);color:#9ca3af;">${u.part||''}</span>
+          ${fb?`<span style="font-size:9px;color:var(--muted);display:flex;align-items:center;gap:2px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>${fb}</span>`:''}
+        </div>`;
+      });
+      html+='</div>';
+    });
+  } else {
+    html+='<p style="font-size:13px;color:var(--muted);text-align:center;padding:20px 0;">No recordings in this season.</p>';
+  }
+  html+=`<button onclick="window.downloadArchivePDF('${seasonId}')" style="width:100%;margin-top:12px;background:rgba(176,141,87,0.1);border:1px solid rgba(176,141,87,0.3);border-radius:8px;padding:9px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;">↓ Download PDF Report</button>`;
+  document.getElementById('archiveViewContent').innerHTML=html;
+  openModal('archiveViewModal');
+};
+
+window.downloadArchivePDF=async(seasonId)=>{
+  const season=S.seasons.find(s=>s.id===seasonId);
+  if(!season){showToast('Season not found.');return;}
+  const uploads=S.uploads.filter(u=>u.seasonId===seasonId);
+  const lessons=[...new Set(uploads.map(u=>u.lesson||'No Lesson'))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  const students=[...new Set(uploads.map(u=>u.submittedBy))];
+  const totalFeedback=uploads.reduce((t,u)=>t+(u.facFeedback||[]).length+(u.feedback?1:0),0);
+  let html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${season.name} Archive</title>
+  <style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 30px;color:#1a1a1a;}h1{font-size:28px;margin-bottom:4px;}h2{font-size:18px;color:#555;margin:24px 0 8px;border-bottom:1px solid #ddd;padding-bottom:4px;}h3{font-size:14px;color:#777;margin:16px 0 6px;}.stats{display:flex;gap:20px;margin:16px 0;}.stat{text-align:center;border:1px solid #ddd;border-radius:8px;padding:12px 16px;}.stat-n{font-size:24px;font-weight:bold;color:#b08d57;}.stat-l{font-size:11px;color:#777;text-transform:uppercase;}.student{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;}.chip{font-size:10px;padding:2px 8px;border-radius:10px;background:#f0f0f0;color:#555;}.feedback{background:#fafafa;border-left:3px solid #b08d57;padding:6px 10px;margin:4px 0;font-size:12px;color:#333;border-radius:0 4px 4px 0;}.fb-from{font-size:10px;font-weight:bold;color:#b08d57;margin-bottom:2px;}</style></head><body>
+  <h1>${season.name}</h1>
+  <p style="color:#777;font-size:13px;">${season.startDate||'—'} to ${season.endDate||new Date().toISOString().split('T')[0]} · Vocal Harmony</p>
+  <div class="stats">
+    <div class="stat"><div class="stat-n">${students.length}</div><div class="stat-l">Students</div></div>
+    <div class="stat"><div class="stat-n">${uploads.length}</div><div class="stat-l">Recordings</div></div>
+    <div class="stat"><div class="stat-n">${totalFeedback}</div><div class="stat-l">Feedback</div></div>
+    <div class="stat"><div class="stat-n">${lessons.length}</div><div class="stat-l">Lessons</div></div>
+  </div>`;
+  lessons.forEach(lesson=>{
+    const lu=uploads.filter(u=>(u.lesson||'No Lesson')===lesson);
+    html+=`<h2>${lesson}</h2>`;
+    lu.forEach(u=>{
+      html+=`<div class="student"><strong>${u.submittedBy||'Unknown'}</strong><span class="chip">${u.part||''}</span><span style="font-size:11px;color:#999;">${u.songTitle||''}</span></div>`;
+      if(u.feedback) html+=`<div class="feedback"><div class="fb-from">Admin</div>${u.feedback}</div>`;
+      (u.facFeedback||[]).forEach(fb=>{ html+=`<div class="feedback"><div class="fb-from">${fb.name} · ${fb.time||''}</div>${fb.text}</div>`; });
+    });
+  });
+  html+=`</body></html>`;
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`${season.name.replace(/\s/g,'_')}_Archive.html`;
+  a.click();
+  showToast('Archive downloaded!');
+};
+
+// ── RECORDER ──────────────────────────────────────────────────────────────────
+let _mediaRecorder=null,_recChunks=[],_recTimer=null,_recSeconds=0,_recBlob=null,_recAudio=null;
+function _fmtTime(s){return Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60;}
+window.startRecording=async()=>{
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+    _recChunks=[];_recSeconds=0;
+    const preview=document.getElementById('recPreview');
+    if(preview){preview.srcObject=stream;}
+    _mediaRecorder=new MediaRecorder(stream);
+    _mediaRecorder.ondataavailable=e=>_recChunks.push(e.data);
+    _mediaRecorder.onstop=()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      if(preview){preview.srcObject=null;}
+      _recBlob=new Blob(_recChunks,{type:'video/webm'});
+      const playback=document.getElementById('recPlayback');
+      if(playback){playback.src=URL.createObjectURL(_recBlob);}
+      document.getElementById('recordActive').style.display='none';
+      document.getElementById('recordDone').style.display='block';
+      S.pendingFile=new File([_recBlob],'recording_'+Date.now()+'.webm',{type:'video/webm'});
+      document.getElementById('dropTitle').textContent=S.pendingFile.name;
+      document.getElementById('dropSub').textContent=fmtSize(S.pendingFile.size)+' · recorded';
+      checkSubmitReady();
+    };
+    _mediaRecorder.start();
+    document.getElementById('recordIdle').style.display='none';
+    document.getElementById('recordActive').style.display='block';
+    document.getElementById('recordDone').style.display='none';
+    _recTimer=setInterval(()=>{_recSeconds++;document.getElementById('recTimer').textContent=_fmtTime(_recSeconds);},1000);
+  }catch(e){showToast('Camera access denied.');}
+};
+window.stopRecording=()=>{if(_mediaRecorder&&_mediaRecorder.state!=='inactive'){_mediaRecorder.stop();clearInterval(_recTimer);}};
+window.playRecording=()=>{
+  if(!_recBlob)return;
+  if(_recAudio&&!_recAudio.paused){_recAudio.pause();return;}
+  _recAudio=new Audio(URL.createObjectURL(_recBlob));
+  _recAudio.ontimeupdate=()=>{const p=(_recAudio.currentTime/_recAudio.duration*100)||0;document.getElementById('recProgress').style.width=p+'%';};
+  _recAudio.onended=()=>document.getElementById('recProgress').style.width='0%';
+  _recAudio.play();
+};
+window.reRecord=()=>{
+  _recBlob=null;S.pendingFile=null;
+  const playback=document.getElementById('recPlayback');
+  if(playback){playback.src='';}
+  document.getElementById('recTimer').textContent='0:00';
+  document.getElementById('recordIdle').style.display='block';
+  document.getElementById('recordActive').style.display='none';
+  document.getElementById('recordDone').style.display='none';
+  document.getElementById('dropTitle').textContent='Drop your Video file here';
+  document.getElementById('dropSub').innerHTML='MP4, MOV, AVI up to 50MB · <span style="color:var(--accent)">browse files</span>';
+  checkSubmitReady();
+};
+
+// Initial load
+fetchAll();
+setInterval(()=>fetchAll(true), 15000);
+initPartRows();
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+window.scrollToSec=id=>{
+  const el=document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+};
+window.showPage = (id, el) => {
+  if(id==='admin' && !S.isAdmin){
+    openModal('loginModal');
+    setTimeout(()=>document.getElementById('adminPassword').focus(),100);
+    return;
+  }
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  setPageStore(id);
+};
+
+function setAdminStore(){
+  try{localStorage.setItem('vh_admin','1');}catch(e){}
+  try{sessionStorage.setItem('vh_admin','1');}catch(e){}
+  document.cookie='vh_admin=1;path=/;max-age=86400';
+}
+function clearAdminStore(){
+  try{localStorage.removeItem('vh_admin');}catch(e){}
+  try{sessionStorage.removeItem('vh_admin');}catch(e){}
+  document.cookie='vh_admin=0;path=/;max-age=0';
+}
+function getAdminStore(){
+  try{if(localStorage.getItem('vh_admin')==='1')return true;}catch(e){}
+  try{if(sessionStorage.getItem('vh_admin')==='1')return true;}catch(e){}
+  return document.cookie.split(';').some(c=>c.trim()==='vh_admin=1');
+}
+function getPageStore(){
+  try{return localStorage.getItem('vh_page')||'';}catch(e){return '';}
+}
+function setPageStore(page){
+  try{localStorage.setItem('vh_page',page);}catch(e){}
+}
+function unlockAdmin() {
+  S.isAdmin=true;
+  setAdminStore();
+  
+  document.getElementById('signOutBtn').style.display='inline-block';
+  showToast('Welcome, Admin!');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-admin').classList.add('active');
+  document.getElementById('adminNavBtn').classList.add('active');
+}
+
+window.doLogin = () => {
+  const pw = document.getElementById('adminPassword').value.trim();
+  if(pw === 'Vocal555'){
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('loginModal').classList.remove('open');
+    S.isAdmin=true;
+    setAdminStore();
+    setPageStore('admin');
+    document.getElementById('signOutBtn').style.display='inline-block';
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.getElementById('page-admin').classList.add('active');
+    document.getElementById('adminNavBtn').classList.add('active');
+    fetchAll();
+    showToast('Welcome, Admin!');
+  } else {
+    document.getElementById('adminPassword').value = '';
+    showToast('Wrong password. Try again.');
+  }
+};
+
+// Restore session on load
+
+
+// Secret: tap logo 5 times
+let tapCount=0, tapTimer;
+document.querySelector('.nav-logo').addEventListener('click',()=>{
+  tapCount++; clearTimeout(tapTimer);
+  tapTimer=setTimeout(()=>tapCount=0,2000);
+  if(tapCount>=5){tapCount=0;if(!S.isAdmin)unlockAdmin();}
+});
+
+// Secret: type "admin" on keyboard
+let keyBuf='';
+document.addEventListener('keydown',e=>{
+  keyBuf+=e.key.toLowerCase();
+  if(keyBuf.length>10) keyBuf=keyBuf.slice(-10);
+  if(keyBuf.includes('admin')){keyBuf='';if(!S.isAdmin)unlockAdmin();}
+});
+
+
+
+window.doLogout = () => {
+  S.isAdmin=false;
+  clearAdminStore();
+  setPageStore('library');
+  document.getElementById('signOutBtn').style.display='none';
+  document.querySelectorAll('.page').forEach(pg=>pg.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-library').classList.add('active');
+  document.getElementById('libraryNavBtn').classList.add('active');
+  showToast('Signed out.');
+};
+
+
+
+// ── LIBRARY ───────────────────────────────────────────────────────────────────
+function renderCatFilter(){
+  const el=document.getElementById('catFilter');
+  el.innerHTML=`<div class="cat-pill ${S.currentCat==='all'?'active':''}" onclick="filterCat('all',this)">All</div>`
+    +S.categories.map(c=>`<div class="cat-pill ${S.currentCat===c.name?'active':''}" onclick="filterCat('${c.name}',this)">${c.name}</div>`).join('');
+}
+
+window.setSort=(sort,el)=>{
+  if(sort==='lesson' && S.currentSort==='lesson'){
+    S.lessonAsc=!S.lessonAsc;
+    el.textContent = S.lessonAsc ? 'Lesson ↑' : 'Lesson ↓';
+  } else {
+    S.currentSort=sort;
+    S.lessonAsc=false;
+    document.querySelectorAll('#sortLesson,#sortTitle,#sortCat').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+    if(sort==='lesson') el.textContent='Lesson ↓';
+  }
+  renderLibrary();
+};
+
+function renderLibrary(){
+  const grid=document.getElementById('songsGrid');
+  let list=(S.currentCat==='all'?[...S.songs]:S.songs.filter(s=>s.category===S.currentCat)).filter(s=>s.published!==false);
+  // Sort based on current sort selection
+  if(S.currentSort==='lesson'){
+    list.sort((a,b)=>{
+      const la=a.lesson||'', lb=b.lesson||'';
+      if(!la&&!lb) return 0;
+      if(!la) return 1;
+      if(!lb) return -1;
+      return S.lessonAsc
+        ? la.localeCompare(lb, undefined, {numeric:true})
+        : lb.localeCompare(la, undefined, {numeric:true});
+    });
+  } else if(S.currentSort==='title'){
+    list.sort((a,b)=>a.title.localeCompare(b.title));
+  } else if(S.currentSort==='category'){
+    list.sort((a,b)=>(a.category||'').localeCompare(b.category||''));
+  }
+  if(!list.length){grid.innerHTML='<p style="color:var(--muted);font-size:14px;">No songs yet.</p>';return;}
+  grid.innerHTML=list.map(s=>{
+    const parts=(s.parts||[]).map(p=>`<span class="part-chip chip-${p.name.toLowerCase()}" onclick="openPart('${s.id}','${p.name}')">${p.name}</span>`).join('');
+    const yt=s.youtubeUrl?`<a href="${s.youtubeUrl}" target="_blank" class="btn btn-ghost btn-sm">▶ YouTube</a>`:'';
+    return `<div class="song-card">
+      <div class="song-card-top">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+          <div class="song-cat-badge" style="margin-bottom:0;">${s.category||'Uncategorised'}</div>
+          ${s.lesson?`<div class="song-cat-badge" style="margin-bottom:0;background:rgba(90,184,160,0.15);color:#5ab8a0;">${s.lesson}</div>`:''}
+        </div>
+        <div class="song-title">${s.title}</div>
+        <div class="song-meta">${(s.parts||[]).length} voice part${(s.parts||[]).length!==1?'s':''}</div>
+      </div>
+      <div class="parts-row">${parts||'<span style="color:var(--muted);font-size:12px;">No parts yet</span>'}</div>
+      <div class="song-card-actions">${yt}</div>
+    </div>`;
+  }).join('');
+}
+
+window.filterCat=(cat,el)=>{
+  S.currentCat=cat;
+  document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active'); renderLibrary();
+};
+
+window.openPart=(songId,partName)=>{
+  const s=S.songs.find(x=>x.id===songId); if(!s)return;
+  const p=(s.parts||[]).find(x=>x.name===partName);
+  document.getElementById('partModalTitle').textContent=`${s.title} — ${partName}`;
+  let html=`<div style="margin-bottom:16px;"><span class="part-chip chip-${partName.toLowerCase()}" style="font-size:13px;padding:6px 14px;">${partName}</span></div>`;
+  if(p&&p.url) html+=`<div style="background:var(--surface2);border-radius:10px;padding:16px;"><p style="font-size:12px;color:var(--muted);margin-bottom:8px;">Reference audio</p><audio controls style="width:100%" src="${p.url}"></audio></div>`;
+  else html+=`<div style="background:var(--surface2);border-radius:10px;padding:20px;text-align:center;color:var(--muted);font-size:13px;">No reference audio uploaded yet.</div>`;
+  if(s.youtubeUrl) html+=`<div style="margin-top:14px;"><a href="${s.youtubeUrl}" target="_blank" class="btn btn-ghost btn-sm">▶ Watch on YouTube</a></div>`;
+  document.getElementById('partModalContent').innerHTML=html;
+  openModal('partModal');
+};
+
+// ── SUBMIT HOMEWORK ───────────────────────────────────────────────────────────
+window.checkSubmitReady=()=>{
+  const n=document.getElementById('uploaderName').value.trim();
+  const s=document.getElementById('uploadSongSelect').value;
+  if(n){const el=document.getElementById('uploaderName');el.style.borderColor='';el.style.boxShadow='';}
+  if(s){const el=document.getElementById('uploadSongSelect');el.style.borderColor='';el.style.boxShadow='';}
+  if(S.pendingFile){const z=document.getElementById('uploadZone');z.style.borderColor='';z.style.background='';}
+};
+
+window.handleFileSelect=input=>{
+  if(!input.files[0])return;
+  S.pendingFile=input.files[0];
+  document.getElementById('dropTitle').textContent=input.files[0].name;
+  document.getElementById('dropSub').textContent=fmtSize(input.files[0].size);
+  checkSubmitReady(); showToast('File ready!');
+};
+
+window.dragOver=e=>{e.preventDefault();document.getElementById('uploadZone').classList.add('drag');};
+window.dragLeave=()=>document.getElementById('uploadZone').classList.remove('drag');
+window.dropFile=e=>{
+  e.preventDefault(); dragLeave();
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type.startsWith('audio/')){
+    S.pendingFile=f;
+    document.getElementById('dropTitle').textContent=f.name;
+    document.getElementById('dropSub').textContent=fmtSize(f.size);
+    checkSubmitReady();
+  }
+};
+
+window.submitUpload=async()=>{
+  const name=document.getElementById('uploaderName').value.trim();
+  const songId=document.getElementById('uploadSongSelect').value;
+  const part=document.getElementById('uploadPartSelect').value;
+  const note=document.getElementById('uploadNote').value.trim();
+
+  // Validate and highlight missing fields
+  let valid=true;
+  const highlight=(id,ok)=>{
+    const el=document.getElementById(id);
+    el.style.borderColor=ok?'':'#e05a5a';
+    el.style.boxShadow=ok?'':'0 0 0 2px rgba(224,90,90,0.15)';
+    if(ok){el.style.borderColor='';el.style.boxShadow='';}
+  };
+  if(!name){highlight('uploaderName',false);valid=false;}else highlight('uploaderName',true);
+  if(!songId){highlight('uploadSongSelect',false);valid=false;}else highlight('uploadSongSelect',true);
+  if(!S.pendingFile){
+    const zone=document.getElementById('uploadZone');
+    zone.style.borderColor='#e05a5a';
+    zone.style.background='rgba(224,90,90,0.04)';
+    valid=false;
+  } else {
+    const zone=document.getElementById('uploadZone');
+    zone.style.borderColor='';
+    zone.style.background='';
+  }
+  if(!valid){showToast('Please fill in all required fields.');return;}
+
+  const song=S.songs.find(s=>s.id===songId);
+  const btn=document.getElementById('submitUploadBtn');
+  const bar=document.getElementById('uploadProgress');
+  const fill=document.getElementById('uploadFill');
+  const status=document.getElementById('uploadStatus');
+  btn.disabled=true; btn.textContent='Uploading...';
+  bar.style.display='block'; status.style.display='block'; status.textContent='Uploading to cloud...';
+  try {
+    const url = await uploadToCloudinary(S.pendingFile, pct=>{ fill.style.width=pct+'%'; status.textContent=`Uploading... ${pct}%`; });
+    status.textContent='Saving submission...';
+    const ref2=await addDoc(collection(db,'uploads'),{
+      fileName:S.pendingFile.name, fileSize:S.pendingFile.size,
+      songId, songTitle:song?song.title:'Unknown',
+      lesson:song?song.lesson:'',
+      part, note, status:'pending', submittedBy:name,
+      seasonId:S.currentSeason?S.currentSeason.id:'',
+      seasonName:S.currentSeason?S.currentSeason.name:'Season 1',
+      url, isNew:true, createdAt:serverTimestamp()
+    });
+    S.sessionIds.push(ref2.id);
+    await fetchAll(true);
+    S.pendingFile=null;
+    btn.disabled=false; btn.textContent='Submit Recording';
+    bar.style.display='none'; fill.style.width='0%'; status.style.display='none';
+    document.getElementById('uploadSongSelect').value='';
+    document.getElementById('dropTitle').textContent='Drop your audio file here';
+    document.getElementById('dropSub').innerHTML='MP3, WAV, M4A up to 50MB · <span style="color:var(--accent)">browse files</span>';
+    document.getElementById('uploadNote').value='';
+    document.getElementById('fileInput').value='';
+    showToast('Thank you! Admin will review your submission shortly.');
+  } catch(e){
+    showToast('Error: '+e.message);
+    btn.disabled=false; btn.textContent='Submit Recording';
+    bar.style.display='none'; status.style.display='none';
+  }
+};
+
+function renderMyUploads(){
+  const el=document.getElementById('myUploadsList');
+  const mine=S.uploads.filter(u=>S.sessionIds.includes(u.id));
+  el.innerHTML=mine.length?mine.map(u=>`
+    <div class="upload-item" style="flex-direction:column;align-items:stretch;gap:0;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:${u.feedback?'8px':'0'};">
+        <div class="upload-item-icon"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M9 19V6l12-3v13" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="15" r="3"/></svg></div>
+        <div class="upload-item-info"><div class="upload-item-name">${u.fileName}</div><div class="upload-item-meta">${u.songTitle} · ${u.part} · ${fmtSize(u.fileSize)}</div></div>
+        <span class="status-badge ${u.status==='approved'?'status-approved':'status-pending'}">${u.status}</span>
+      </div>
+      ${u.feedback?`<div style="background:rgba(176,141,87,0.08);border:1px solid rgba(176,141,87,0.2);border-radius:8px;padding:10px 12px;">
+        <div style="font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">💬 Feedback from Admin</div>
+        <div style="font-size:12px;color:var(--text);line-height:1.5;">${u.feedback}</div>
+      </div>`:''}
+    </div>`).join(''):'<p style="color:var(--muted);font-size:13px;">No submissions yet this session.</p>';
+}
+
+function renderSongSelect(){
+  const el=document.getElementById('uploadSongSelect');
+  // Sort by lesson same as library
+  let sorted=[...S.songs].sort((a,b)=>{
+    const la=a.lesson||'', lb=b.lesson||'';
+    if(!la&&!lb) return 0;
+    if(!la) return 1;
+    if(!lb) return -1;
+    return la.localeCompare(lb, undefined, {numeric:true});
+  });
+  const prev=el.value;
+  el.innerHTML='<option value="">— choose song —</option>'
+    +sorted.map(s=>`<option value="${s.id}">${s.lesson?`${s.lesson} — `:''}${s.title}</option>`).join('')
+    +'<option value="others">Others</option>';
+  if(prev) el.value=prev;
+}
+
+// ── ADMIN SONGS ───────────────────────────────────────────────────────────────
+window.handleSongVideo = async (input) => {
+  if(!input.files[0]) return;
+  const file = input.files[0];
+  document.getElementById('adminSongVideoName').textContent = file.name;
+  document.getElementById('adminSongYT').value = '';
+  document.getElementById('adminSongYT').placeholder = 'Using uploaded video instead...';
+  const bar = document.getElementById('videoProgress');
+  const fill = document.getElementById('videoFill');
+  const status = document.getElementById('videoStatus');
+  bar.style.display = 'block'; status.style.display = 'block'; status.textContent = 'Uploading video...';
+  try {
+    const url = await uploadToCloudinary(file, pct => { fill.style.width = pct + '%'; status.textContent = 'Uploading... ' + pct + '%'; });
+    document.getElementById('adminSongYT').value = url;
+    document.getElementById('adminSongYT').placeholder = 'https://youtube.com/...';
+    bar.style.display = 'none'; status.style.display = 'none';
+    showToast('Video uploaded! Saved as link.');
+  } catch(e) {
+    showToast('Video upload failed: ' + e.message);
+    bar.style.display = 'none'; status.style.display = 'none';
+    document.getElementById('adminSongVideoName').textContent = '';
+    document.getElementById('adminSongYT').placeholder = 'https://youtube.com/...';
+  }
+};
+
+window.adminSaveSong=async(saveType)=>{
+  const title=document.getElementById('adminSongTitle').value.trim();
+  const cat=document.getElementById('adminSongCat').value;
+  const yt=document.getElementById('adminSongYT').value.trim();
+  const lesson=document.getElementById('adminSongLesson').value||'';
+  const published=saveType==='draft'?false:(document.getElementById('adminSongPublish')?document.getElementById('adminSongPublish').checked:true);
+  if(!title){showToast('Please enter a song title.');return;}
+  const btn=document.getElementById('saveSongBtn');
+  const fill=document.getElementById('songFill');
+  const bar=document.getElementById('songProgress');
+  const status=document.getElementById('songStatus');
+  btn.disabled=true; btn.textContent='Saving...';
+  bar.style.display='block'; status.style.display='block';
+  try {
+    const parts=[];
+    const toUpload=S.partRows.filter(p=>p.file);
+    let done=0;
+    for(const p of S.partRows){
+      if(p.file){
+        status.textContent=`Uploading ${p.name}...`;
+        const url=await uploadToCloudinary(p.file, pct=>{ fill.style.width=Math.round(((done+pct/100)/Math.max(toUpload.length,1))*100)+'%'; });
+        done++;
+        parts.push({name:p.name, url});
+      } else {
+        parts.push({name:p.name, url:p.url||null});
+      }
+    }
+    status.textContent='Saving to database...';
+    if(S.editingId){
+      await updateDoc(doc(db,'songs',S.editingId),{title,category:cat,youtubeUrl:yt,lesson,parts,published});
+      showToast(`"${title}" updated!`); cancelEditSong(); await fetchAll();
+    } else {
+      await addDoc(collection(db,'songs'),{title,category:cat,youtubeUrl:yt,lesson,parts,published,createdAt:serverTimestamp()});
+      showToast(published?`"${title}" published!`:`"${title}" saved as draft!`); await fetchAll(true);
+      document.getElementById('adminSongTitle').value='';
+      document.getElementById('adminSongYT').value='';
+      document.getElementById('adminSongLesson').value='';
+      initPartRows();
+    }
+  } catch(e){ showToast('Error: '+e.message); }
+  btn.disabled=false; btn.textContent=S.editingId?'Update Song':'Save Song';
+  bar.style.display='none'; fill.style.width='0%'; status.style.display='none';
+};
+
+window.editSong=id=>{
+  const s=S.songs.find(x=>x.id===id); if(!s){showToast('Song not found.');return;}
+  S.editingId=id;
+  document.getElementById('adminSongTitle').value=s.title;
+  document.getElementById('adminSongYT').value=s.youtubeUrl||'';
+  document.getElementById('adminSongLesson').value=s.lesson||'';
+  document.getElementById('adminSongCat').value=s.category||'';
+  const pt=document.getElementById('publishToggle');const pc=document.getElementById('adminSongPublish');if(pt&&pc){const pub=s.published!==false;pc.checked=pub;pub?pt.classList.add('on'):pt.classList.remove('on');pt.style.background=pub?'var(--accent)':'var(--surface2)';pt.querySelector('div').style.left=pub?'23px':'3px';}
+  S.partRows=(s.parts||[]).map(p=>({name:p.name,file:null,url:p.url}));
+  renderPartRows();
+  document.getElementById('songFormTitle').textContent='Edit Song';
+  document.getElementById('saveSongBtn').textContent='Update Song';
+  document.getElementById('cancelEditBtn').style.display='';
+  showToast('Editing: '+s.title);
+  window.scrollTo({top:0,behavior:'smooth'});
+  document.getElementById('page-admin').scrollTo({top:0,behavior:'smooth'});
+};
+
+window.cancelEditSong=()=>{
+  S.editingId=null;
+  document.getElementById('adminSongTitle').value='';
+  document.getElementById('adminSongYT').value='';
+  document.getElementById('adminSongLesson').value='';
+  document.getElementById('adminSongVideoName').textContent='';
+  document.getElementById('adminSongVideo').value='';
+  document.getElementById('songFormTitle').textContent='Add New Song';
+  document.getElementById('saveSongBtn').textContent='Save Song';
+  document.getElementById('cancelEditBtn').style.display='none';
+  initPartRows();
+};
+
+window.deleteSong=async id=>{
+  const s=S.songs.find(x=>x.id===id);
+  if(!s||!confirm(`Delete "${s.title}"?`))return;
+  await deleteDoc(doc(db,'songs',id));
+  if(S.editingId===id) cancelEditSong();
+  showToast('Song deleted.'); await fetchAll(true);
+};
+
+window.renderAdminSongList=function renderAdminSongList(){
+  const el=document.getElementById('adminSongList'); if(!el)return;
+  if(!S.songs.length){el.innerHTML='<p style="color:var(--muted);font-size:12px;">No songs yet.</p>';return;}
+  el.innerHTML=S.songs.map(s=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:120px;">
+        <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.title}</div>
+        <div style="font-size:11px;color:var(--muted);">${s.lesson?`${s.lesson} · `:''}${s.category||'Uncategorised'} · ${(s.parts||[]).length} part${(s.parts||[]).length!==1?'s':''}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="btn btn-ghost btn-sm" onclick="window.editSong('${s.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="window.deleteSong('${s.id}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── ADMIN CATEGORIES ──────────────────────────────────────────────────────────
+window.adminAddCat=async()=>{
+  const val=document.getElementById('newCatInput').value.trim();
+  if(!val){showToast('Enter a category name.');return;}
+  if(S.categories.find(c=>c.name===val)){showToast('Already exists.');return;}
+  await addDoc(collection(db,'categories'),{name:val,createdAt:serverTimestamp()});
+  document.getElementById('newCatInput').value='';
+  await fetchCats(); showToast(`"${val}" added!`);
+};
+
+window.deleteCat=async id=>{
+  const cat=S.categories.find(c=>c.id===id);
+  if(!confirm(`Delete "${cat?cat.name:'this category'}"?\n\nOnce deleted, it cannot be retrieved.`)) return;
+  await deleteDoc(doc(db,'categories',id));
+  await fetchCats(); showToast('Category deleted.');
+};
+
+window.renderAdminCats=function renderAdminCats(){
+  const el=document.getElementById('adminCatList'); if(!el)return;
+  if(!S.categories.length){el.innerHTML='<p style="color:var(--muted);font-size:12px;">No categories yet.</p>';return;}
+  el.innerHTML=S.categories.map((c,i)=>`
+    <div id="catrow_${c.id}" style="display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:8px;padding:8px 12px;margin-bottom:4px;transition:opacity .2s;">
+      <span style="color:var(--muted);font-size:16px;cursor:ns-resize;flex-shrink:0;user-select:none;" 
+        onmousedown="catDragMouseDown(event,'${c.id}')" 
+        ontouchstart="catDragTouch(event,'${c.id}')">⠿</span>
+      <span style="flex:1;font-size:13px;">${c.name}</span>
+      <button class="btn btn-ghost btn-sm" onclick="editCat('${c.id}')">Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteCat('${c.id}')">Delete</button>
+    </div>`).join('');
+}
+
+// ── CATEGORY DRAG ─────────────────────────────────────────────────────────────
+let _catDragId=null, _catDragY=0, _catDragEl=null, _catPlaceholder=null;
+
+window.catDragMouseDown=function(e, id){
+  e.preventDefault();
+  _startCatDrag(id, e.clientY);
+  document.addEventListener('mousemove', _catMouseMove);
+  document.addEventListener('mouseup', _catMouseUp);
+};
+
+window.catDragTouch=function(e, id){
+  e.preventDefault();
+  _startCatDrag(id, e.touches[0].clientY);
+  document.addEventListener('touchmove', _catTouchMove, {passive:false});
+  document.addEventListener('touchend', _catTouchEnd);
+};
+
+function _startCatDrag(id, y){
+  _catDragId=id;
+  _catDragY=y;
+  _catDragEl=document.getElementById('catrow_'+id);
+  if(!_catDragEl) return;
+  _catDragEl.style.opacity='0.4';
+}
+
+function _catMouseMove(e){ _moveCatDrag(e.clientY); }
+function _catTouchMove(e){ e.preventDefault(); _moveCatDrag(e.touches[0].clientY); }
+
+function _moveCatDrag(y){
+  if(!_catDragId||!_catDragEl) return;
+  const list=document.getElementById('adminCatList');
+  const rows=Array.from(list.querySelectorAll('[id^="catrow_"]'));
+  let target=null;
+  rows.forEach(row=>{
+    if(row===_catDragEl) return;
+    const rect=row.getBoundingClientRect();
+    if(y>rect.top && y<rect.bottom) target=row;
+  });
+  rows.forEach(r=>r.style.borderTop='');
+  if(target) target.style.borderTop='2px solid var(--accent)';
+}
+
+function _catMouseUp(e){ _endCatDrag(e.clientY); document.removeEventListener('mousemove',_catMouseMove); document.removeEventListener('mouseup',_catMouseUp); }
+function _catTouchEnd(e){ _endCatDrag(e.changedTouches[0].clientY); document.removeEventListener('touchmove',_catTouchMove); document.removeEventListener('touchend',_catTouchEnd); }
+
+async function _endCatDrag(y){
+  if(!_catDragId||!_catDragEl) return;
+  _catDragEl.style.opacity='1';
+  const list=document.getElementById('adminCatList');
+  const rows=Array.from(list.querySelectorAll('[id^="catrow_"]'));
+  rows.forEach(r=>r.style.borderTop='');
+  let toId=null;
+  rows.forEach(row=>{
+    if(row===_catDragEl) return;
+    const rect=row.getBoundingClientRect();
+    if(y>rect.top && y<rect.bottom) toId=row.id.replace('catrow_','');
+  });
+  if(toId && toId!==_catDragId){
+    const fromIdx=S.categories.findIndex(c=>c.id===_catDragId);
+    const toIdx=S.categories.findIndex(c=>c.id===toId);
+    const item=S.categories.splice(fromIdx,1)[0];
+    S.categories.splice(toIdx,0,item);
+    window.renderAdminCats();
+    S._catDraggedOnce=true;
+    S._catOrderLocked=true;
+    try{
+      await Promise.all(S.categories.map((c,i)=>updateDoc(doc(db,'categories',c.id),{order:i})));
+      renderCatFilter(); renderCatSelect();
+      showToast('Order saved!');
+    }catch(e){ showToast('Save failed: '+e.message); }
+  }
+  _catDragId=null; _catDragEl=null;
+}
+
+window.editCat=async id=>{
+  const cat=S.categories.find(c=>c.id===id); if(!cat)return;
+  const newName=prompt('Edit category name:',cat.name);
+  if(!newName||newName===cat.name)return;
+  await updateDoc(doc(db,'categories',id),{name:newName});
+  await fetchCats(); showToast('Category updated!');
+};
+
+
+
+
+
+function renderCatSelect(){
+  const el=document.getElementById('adminSongCat'); if(!el)return;
+  const prev=el.value;
+  el.innerHTML='<option value="">— select —</option>'+S.categories.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  el.value=prev;
+}
+
+// ── ADMIN UPLOADS ─────────────────────────────────────────────────────────────
+function renderAdminUploads(){
+  const wrap=document.getElementById('adminUploadsWrap'); if(!wrap)return;
+  if(!S.uploads.length){wrap.innerHTML='<p style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">No submissions yet.</p>';return;}
+  wrap.innerHTML=S.uploads.map(u=>`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;${u.isNew?'border-left:3px solid var(--accent);background:rgba(176,141,87,0.05);':''}">
+      ${u.url?`<audio id="aud_${u.id}" src="${u.url}" style="display:none"></audio>`:''}
+      <div style="margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
+          ${u.isNew?'<span style="font-size:10px;font-weight:500;background:rgba(176,141,87,0.2);color:var(--accent);padding:2px 6px;border-radius:4px;">NEW</span>':''}
+          <span class="status-badge ${u.status==='approved'?'status-approved':'status-pending'}">${u.status}</span>
+          <span class="part-chip chip-${(u.part||'').toLowerCase()}">${u.part}</span>
+        </div>
+        <div style="font-size:13px;font-weight:500;color:var(--text);">${u.submittedBy}</div>
+        <div style="font-size:12px;color:var(--muted);">${u.songTitle}</div>
+        <div style="font-size:11px;color:var(--muted);">${u.fileName} · ${fmtSize(u.fileSize)}</div>
+        ${u.note?`<div style="font-size:11px;color:var(--muted);margin-top:3px;font-style:italic;">"${u.note}"</div>`:''}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+        ${u.url?`<button class="btn btn-ghost btn-sm" onclick="window.togglePlay('${u.id}')">▶ Play</button>`:''}
+        ${u.status!=='approved'?`<button class="btn btn-ghost btn-sm" onclick="window.approveUpload('${u.id}')">Approve</button>`:''}
+        ${u.url?`<a href="${u.url}" target="_blank" class="btn btn-ghost btn-sm">↓ Download</a>`:''}
+        <button class="btn btn-danger btn-sm" onclick="window.deleteUpload('${u.id}')">✕ Delete</button>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:4px;">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          ${u.feedback?'Feedback sent':'Leave feedback for '+u.submittedBy}
+        </div>
+        ${u.feedback?`<div style="font-size:12px;color:var(--text);font-style:italic;padding:6px 8px;background:var(--surface);border-radius:6px;border-left:2px solid var(--accent);margin-bottom:6px;">"${u.feedback}"</div>`:''}
+        <textarea id="fb_${u.id}" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;resize:none;height:56px;box-sizing:border-box;" placeholder="Write feedback...">${u.feedback||''}</textarea>
+        <button onclick="window.saveFeedback('${u.id}')" style="margin-top:6px;background:var(--accent);color:#0b0b0d;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;">${u.feedback?'Update':'Send Feedback'}</button>
+      </div>
+    </div>`).join('');
+}
+
+window.togglePlay=id=>{
+  const a=document.getElementById('aud_'+id); if(!a)return;
+  if(a.paused){document.querySelectorAll('audio').forEach(x=>x.pause());a.play();}else a.pause();
+};
+
+window.saveFeedback=async(id)=>{
+  const fb=document.getElementById('fb_'+id);
+  if(!fb)return;
+  const text=fb.value.trim();
+  await updateDoc(doc(db,'uploads',id),{feedback:text});
+  await fetchAll(true);
+  showToast('Feedback saved!');
+};
+
+window.approveUpload=async id=>{
+  await updateDoc(doc(db,'uploads',id),{status:'approved',isNew:false});
+  await fetchAll(true); showToast('Approved!');
+};
+
+window.deleteUpload=async id=>{
+  if(!confirm('Delete this recording?\n\nThis cannot be undone.')) return;
+  await deleteDoc(doc(db,'uploads',id));
+  await fetchAll(true); showToast('Deleted.');
+};
+
+// ── PARTS MANAGER ─────────────────────────────────────────────────────────────
+function initPartRows(){
+  S.partRows=[];
+  renderPartRows();
+}
+
+function renderPartRows(){
+  document.getElementById('partsManager').innerHTML=S.partRows.length===0
+    ? '<p style="font-size:12px;color:var(--muted);padding:4px 0;">No files added yet. Click + Add below.</p>'
+    : S.partRows.map((p,i)=>`
+    <div class="part-row-item">
+      <input class="form-input" style="width:80px;padding:5px 8px;font-size:12px" value="${p.name}" onchange="_S.partRows[${i}].name=this.value" placeholder="File">
+      <span class="part-file-name">${p.file?p.file.name:(p.url?'✓ saved':'No file')}</span>
+      <label class="part-upload-btn">Upload<input type="file" accept="*/*" style="display:none" onchange="partFile(${i},this)"></label>
+      <button style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px" onclick="_S.partRows.splice(${i},1);window.renderPR()">✕</button>
+    </div>`).join('');
+}
+
+window.renderPR=renderPartRows;
+window.addPartRow=()=>{S.partRows.push({name:'File',file:null,url:null});renderPartRows();};
+window.partFile=(i,input)=>{if(input.files[0]){S.partRows[i].file=input.files[0];S.partRows[i].url=null;renderPartRows();}};
+
+// ── STATS & UTILS ─────────────────────────────────────────────────────────────
+window.adminAddLesson=async()=>{
+  const val=document.getElementById('newLessonInput').value.trim();
+  if(!val){showToast('Enter a lesson name.');return;}
+  if(S.lessons.find(l=>l.name===val)){showToast('Already exists.');return;}
+  await addDoc(collection(db,'lessons'),{name:val,createdAt:serverTimestamp()});
+  document.getElementById('newLessonInput').value='';
+  await fetchCats(); showToast(`"${val}" added!`);
+};
+
+window.deleteLesson=async id=>{
+  const lesson=S.lessons.find(l=>l.id===id);
+  if(!confirm(`Delete "${lesson?lesson.name:'this lesson'}"?\n\nOnce deleted, it cannot be retrieved.`)) return;
+  await deleteDoc(doc(db,'lessons',id));
+  await fetchAll(true); showToast('Lesson deleted.');
+};
+
+window.editLesson=async id=>{
+  const lesson=S.lessons.find(l=>l.id===id); if(!lesson)return;
+  const newName=prompt('Edit lesson name:',lesson.name);
+  if(!newName||newName===lesson.name)return;
+  await updateDoc(doc(db,'lessons',id),{name:newName});
+  await fetchAll(); showToast('Lesson updated!');
+};
+
+window.setLessonSort=function(mode, el){
+  S.lessonSortMode=mode;
+  document.querySelectorAll('#lsortNum,#lsortAZ').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  window.renderAdminLessons();
+};
+
+window.renderAdminLessons=function renderAdminLessons(){
+  const el=document.getElementById('adminLessonList'); if(!el)return;
+  if(!S.lessons.length){el.innerHTML='<p style="color:var(--muted);font-size:12px;">No lessons yet.</p>';return;}
+  const mode = S.lessonSortMode||'numeric';
+  if(mode==='az') S.lessons.sort((a,b)=>a.name.localeCompare(b.name));
+  else S.lessons.sort((a,b)=>b.name.localeCompare(a.name,undefined,{numeric:true}));
+  el.innerHTML=S.lessons.map((l,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:8px;padding:8px 12px;margin-bottom:4px;">
+      <span style="flex:1;font-size:13px;">${l.name}</span>
+      <button class="btn btn-ghost btn-sm" onclick="editLesson('${l.id}')">Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLesson('${l.id}')">Delete</button>
+    </div>`).join('');
+}
+
+
+
+function renderLessonSelect(){
+  const el=document.getElementById('adminSongLesson'); if(!el)return;
+  const prev=el.value;
+  el.innerHTML='<option value="">— no lesson —</option>'+S.lessons.map(l=>`<option value="${l.name}">${l.name}</option>`).join('');
+  el.value=prev;
+}
+
+function updateStats(){
+  document.getElementById('statSongs').textContent=S.songs.length;
+  document.getElementById('statUploads').textContent=S.uploads.length;
+  document.getElementById('statCats').textContent=S.categories.length;
+}
+function fmtSize(b){if(!b)return'—';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+// Restore correct page on load
+const _savedPage = getPageStore();
+document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+if(getAdminStore()){
+  S.isAdmin=true;
+  document.getElementById('signOutBtn').style.display='inline-block';
+  document.getElementById('page-admin').classList.add('active');
+  document.getElementById('adminNavBtn').classList.add('active');
+} else if(_savedPage==='upload'){
+  document.getElementById('page-upload').classList.add('active');
+  document.querySelectorAll('.nav-tab')[1].classList.add('active');
+} else if(_savedPage==='facilitators'){
+  document.getElementById('page-facilitators').classList.add('active');
+  document.getElementById('facilitatorsNavBtn').classList.add('active');
+  const fn=getFacSession();
+  if(fn){
+    document.getElementById('facLoginState').style.display='none';
+    document.getElementById('facMainState').style.display='block';
+    document.getElementById('facWelcomeName').textContent=fn;
+  }
+} else {
+  document.getElementById('page-library').classList.add('active');
+  document.getElementById('libraryNavBtn').classList.add('active');
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+window.closeModal=closeModal;
+window.closeModalOuter=(e,id)=>{if(e.target.id===id)closeModal(id);};
+</script>
+</body>
+</html>
