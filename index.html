@@ -175,7 +175,6 @@
   .rec-bar:nth-child(2){animation-delay:.1s;}.rec-bar:nth-child(3){animation-delay:.2s;}.rec-bar:nth-child(4){animation-delay:.3s;}.rec-bar:nth-child(5){animation-delay:.4s;}.rec-bar:nth-child(6){animation-delay:.15s;}.rec-bar:nth-child(7){animation-delay:.25s;}.rec-bar:nth-child(8){animation-delay:.35s;}.rec-bar:nth-child(9){animation-delay:.45s;}.rec-bar:nth-child(10){animation-delay:.05s;}.rec-bar:nth-child(11){animation-delay:.55s;}.rec-bar:nth-child(12){animation-delay:.45s;}
   ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--surface2);}::-webkit-scrollbar-thumb{background:rgba(238,64,53,0.25);border-radius:3px;}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
 
@@ -1406,29 +1405,7 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- PDF VIEWER MODAL -->
-<div class="modal-overlay" id="pdfModal" onclick="closeModalOuter(event,'pdfModal')" style="padding:0;align-items:stretch;">
-  <div style="background:var(--surface);width:100%;max-width:860px;margin:auto;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;max-height:92vh;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);">
-      <span id="pdfModalTitle" style="font-size:14px;font-weight:500;color:var(--text);"></span>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <a id="pdfOpenLink" href="#" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open in new tab</a>
-        <a id="pdfDownloadLink" href="#" target="_blank" download class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Download</a>
-        <button class="modal-close" onclick="closeModal('pdfModal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
-      </div>
-    </div>
-    <div id="pdfViewerContainer" style="flex:1;overflow:auto;background:#fafafa;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:70vh;">
-      <div id="pdfLoading" style="color:var(--muted);font-size:13px;padding:40px 0;display:flex;align-items:center;gap:10px;"><div class="spinner"></div> Loading PDF...</div>
-      <div id="pdfPages" style="width:100%;display:flex;justify-content:center;"></div>
-      <div id="pdfError" style="display:none;text-align:center;padding:20px;max-width:480px;"></div>
-    </div>
-    <div id="pdfControls" style="display:none;padding:10px 16px;border-top:1px solid var(--border);align-items:center;justify-content:center;gap:14px;background:var(--surface);">
-      <button id="pdfPrevBtn" onclick="window.pdfPrevPage()" class="btn btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>Previous</button>
-      <span id="pdfPageInfo" style="font-size:13px;color:var(--text);min-width:120px;text-align:center;">Page 1 of 1</span>
-      <button id="pdfNextBtn" onclick="window.pdfNextPage()" class="btn btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:5px;">Next<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
-    </div>
-  </div>
-</div>
+<!-- PDF viewer is now a plain new-tab open; no modal needed. -->
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -5530,113 +5507,14 @@ document.addEventListener('DOMContentLoaded', () => renderVideoLinks());
 setTimeout(() => renderVideoLinks(), 500);
 
 
-// PDF.js-based viewer state. Single document, one page rendered at a time.
-let _pdfDoc=null;
-let _pdfCurrentPage=1;
-let _pdfRenderTask=null;
-
-window.openPdfViewer=async(url,title)=>{
+// PDF viewer: just open the URL in a new browser tab. The native browser
+// PDF viewer (Chrome/Safari/Firefox) handles rendering, zoom, scroll, and
+// download. This is what Google Classroom, Notion and similar apps do.
+// The `title` parameter is accepted for back-compat with existing callers
+// but is unused — the new tab shows the host's title.
+window.openPdfViewer=(url,title)=>{
   if(!url){ showToast('No PDF available.'); return; }
-  document.getElementById('pdfModalTitle').textContent=title||'Document';
-  // Action buttons always point at the raw URL — independent of how the
-  // canvas viewer renders, so download / open-in-tab always work.
-  const dl=document.getElementById('pdfDownloadLink');
-  const openL=document.getElementById('pdfOpenLink');
-  if(dl) dl.href=url;
-  if(openL) openL.href=url;
-
-  // Reset UI state
-  _pdfDoc=null; _pdfCurrentPage=1;
-  if(_pdfRenderTask && _pdfRenderTask.cancel){ try{ _pdfRenderTask.cancel(); }catch(e){} }
-  _pdfRenderTask=null;
-  const loadingEl=document.getElementById('pdfLoading');
-  const pagesEl=document.getElementById('pdfPages');
-  const errorEl=document.getElementById('pdfError');
-  const controlsEl=document.getElementById('pdfControls');
-  if(loadingEl){ loadingEl.style.display='flex'; }
-  if(pagesEl) pagesEl.innerHTML='';
-  if(errorEl){ errorEl.style.display='none'; errorEl.innerHTML=''; }
-  if(controlsEl) controlsEl.style.display='none';
-
-  openModal('pdfModal');
-
-  try{
-    if(typeof pdfjsLib==='undefined'){
-      throw new Error('PDF viewer library failed to load (check internet connection).');
-    }
-    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-    // For remote http(s) URLs (e.g. Cloudinary), fetch the bytes first and
-    // hand a typed array to PDF.js. This sidesteps any CORS or range-request
-    // surprises with the library's own loader.
-    let loadingTask;
-    if(/^https?:/i.test(url)){
-      const res=await fetch(url);
-      if(!res.ok) throw new Error(`Could not fetch PDF (HTTP ${res.status}).`);
-      const buffer=await res.arrayBuffer();
-      loadingTask=pdfjsLib.getDocument({data:buffer});
-    } else {
-      loadingTask=pdfjsLib.getDocument(url);
-    }
-    _pdfDoc=await loadingTask.promise;
-
-    if(loadingEl) loadingEl.style.display='none';
-    if(controlsEl) controlsEl.style.display=_pdfDoc.numPages>1?'flex':'none';
-    await renderPdfPage(1);
-  }catch(e){
-    console.error('PDF render failed:', e);
-    if(loadingEl) loadingEl.style.display='none';
-    if(errorEl){
-      errorEl.style.display='block';
-      errorEl.innerHTML=`<p style="color:var(--danger);font-size:13px;margin-bottom:14px;line-height:1.5;">Could not display PDF inline${e.message?': '+e.message:'.'}</p><a href="${url}" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open in new tab</a>`;
-    }
-  }
-};
-
-async function renderPdfPage(pageNum){
-  if(!_pdfDoc) return;
-  _pdfCurrentPage=pageNum;
-  const pagesEl=document.getElementById('pdfPages');
-  if(!pagesEl) return;
-  try{
-    const page=await _pdfDoc.getPage(pageNum);
-    const scale=1.5;
-    const viewport=page.getViewport({scale});
-    const canvas=document.createElement('canvas');
-    canvas.height=viewport.height;
-    canvas.width=viewport.width;
-    canvas.style.maxWidth='100%';
-    canvas.style.height='auto';
-    canvas.style.background='#fff';
-    canvas.style.boxShadow='0 2px 12px rgba(0,0,0,0.12)';
-    canvas.style.borderRadius='4px';
-    pagesEl.innerHTML='';
-    pagesEl.appendChild(canvas);
-    const ctx=canvas.getContext('2d');
-    _pdfRenderTask=page.render({canvasContext:ctx,viewport});
-    await _pdfRenderTask.promise;
-    _pdfRenderTask=null;
-    const pageInfo=document.getElementById('pdfPageInfo');
-    if(pageInfo) pageInfo.textContent=`Page ${pageNum} of ${_pdfDoc.numPages}`;
-    const prevBtn=document.getElementById('pdfPrevBtn');
-    const nextBtn=document.getElementById('pdfNextBtn');
-    if(prevBtn) prevBtn.disabled=pageNum<=1;
-    if(nextBtn) nextBtn.disabled=pageNum>=_pdfDoc.numPages;
-  }catch(e){
-    // Cancelled renders throw — ignore those, surface real errors.
-    if(e && e.name==='RenderingCancelledException') return;
-    console.error('Page render failed:', e);
-    pagesEl.innerHTML=`<p style="color:var(--danger);font-size:13px;padding:20px;">Page render failed: ${e.message||'unknown error'}</p>`;
-  }
-}
-
-window.pdfPrevPage=()=>{
-  if(!_pdfDoc || _pdfCurrentPage<=1) return;
-  renderPdfPage(_pdfCurrentPage-1);
-};
-window.pdfNextPage=()=>{
-  if(!_pdfDoc || _pdfCurrentPage>=_pdfDoc.numPages) return;
-  renderPdfPage(_pdfCurrentPage+1);
+  window.open(url, '_blank', 'noopener,noreferrer');
 };
 
 // Admin: upload PDF directly to the GitHub repo via the Contents API.
