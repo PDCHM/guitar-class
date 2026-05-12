@@ -672,10 +672,9 @@
       <label class="form-label">Message body</label>
       <textarea class="form-input" id="bulkBody" rows="4" placeholder="Write your message..."></textarea>
     </div>
-    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:14px;cursor:pointer;">
-      <input type="checkbox" id="bulkPin" style="accent-color:var(--accent);">
-      Pin this message
-    </label>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6;">
+      Bulk messages appear as a dismissible banner at the top of each student's My Page. Once a student dismisses it, it's gone for them. Bulk messages are <strong>not</strong> stored alongside Announcements — for a persistent notice on the Community tab, post an Announcement with "Also show in Class Feed" instead.
+    </div>
     <button class="btn btn-primary" onclick="window.sendBulkMessage()">Send to All</button>
   </div>
 
@@ -1073,6 +1072,7 @@
 
   <!-- Logged in state -->
   <div id="learnerMain" style="display:none;">
+    <div id="learnerMessageBanner" style="display:none;background:rgba(3,146,207,0.08);border:1px solid rgba(3,146,207,0.3);border-left:3px solid var(--accent2);border-radius:10px;padding:14px 16px;margin-bottom:16px;align-items:flex-start;gap:12px;"></div>
     <!-- Header -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
       <div>
@@ -2030,6 +2030,12 @@ function startRealtimeListeners(){
     // Feed includes any announcement marked showInFeed, so a new admin post
     // needs to re-render the feed immediately too.
     try{renderCommunityFeed();}catch(e){}
+  }));
+
+  // Bulk messages — separate collection, ephemeral per-student banner.
+  _listeners.push(onSnapshot(collection(db,'messages'), snap=>{
+    S.messages=snap.docs.map(d=>({id:d.id,...d.data()}));
+    try{renderBulkMessageBanner();}catch(e){}
   }));
 }
 
@@ -3054,6 +3060,7 @@ window.studentLogin2=async()=>{
     try{renderLearnerLessonSelect();}catch(e){}
     try{renderQuickStats();}catch(e){}
     try{setLearnerGreeting();}catch(e){}
+    try{renderBulkMessageBanner();}catch(e){}
     setTimeout(()=>{
       try{renderPracticeTools();}catch(e){}
       try{renderChordLibrary();}catch(e){}
@@ -3294,6 +3301,7 @@ async function loadStudentProfile(uid){
     try{renderLearnerLessonSelect();}catch(e){}
     try{renderQuickStats();}catch(e){}
     try{setLearnerGreeting();}catch(e){}
+    try{renderBulkMessageBanner();}catch(e){}
     setTimeout(()=>{
       try{renderPracticeTools();}catch(e){}
       try{renderChordLibrary();}catch(e){}
@@ -5358,20 +5366,20 @@ window.saveAttendance=async()=>{
 };
 
 // ── BULK MESSAGE (uses announcements collection) ──────────────────────────────
+// Bulk messages live in their own `messages` collection — they're ephemeral
+// per-student banners, not persistent announcements. Each student dismisses
+// independently by appending the message id to students/{uid}.dismissedMessages.
 window.sendBulkMessage=async()=>{
   const title=document.getElementById('bulkTitle')?.value.trim();
   const body=document.getElementById('bulkBody')?.value.trim();
   const audience=document.getElementById('bulkTarget')?.value;
-  const pinned=document.getElementById('bulkPin')?.checked||false;
   if(!title||!body){showToast('Please enter title and message.');return;}
   if(!confirm(`Send this message to "${audience==='all'?'all students':audience}"?`))return;
   try{
-    await addDoc(collection(db,'announcements'),{title,body,pinned,audience,createdAt:serverTimestamp(),postedBy:'Admin',isBulk:true});
+    await addDoc(collection(db,'messages'),{title,body,audience,createdAt:serverTimestamp(),postedBy:'Admin'});
     document.getElementById('bulkTitle').value='';
     document.getElementById('bulkBody').value='';
-    document.getElementById('bulkPin').checked=false;
-    showToast('Message sent!');
-    fetchAnnouncements();
+    showToast('Message sent to active students.');
   }catch(e){showToast('Error: '+e.message);}
 };
 
@@ -5714,6 +5722,59 @@ window.handleSongPDF=async(input)=>{
 };
 
 // ── QUICK STATS (welcome header) ──────────────────────────────────────────────
+// ── BULK MESSAGES (ephemeral per-student banner) ─────────────────────────────
+// `messages` is a separate collection from `announcements`. Each student has
+// students/{uid}.dismissedMessages: string[] tracking which ids they've
+// dismissed. The banner shows the most recent undismissed message matching
+// the student's audience filter.
+S.messages = S.messages || [];
+
+function renderBulkMessageBanner(){
+  const el=document.getElementById('learnerMessageBanner');
+  if(!el) return;
+  if(!S.student){ el.style.display='none'; return; }
+  const dismissed=new Set(S.student.dismissedMessages||[]);
+  const studentCat=S.student.category||'';
+  const visible=(S.messages||[])
+    .filter(m=>!dismissed.has(m.id))
+    .filter(m=>m.audience==='all'||!m.audience||m.audience===studentCat)
+    .sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  if(!visible.length){ el.style.display='none'; el.innerHTML=''; return; }
+  const m=visible[0];
+  el.style.display='flex';
+  el.innerHTML=`
+    <div style="width:32px;height:32px;border-radius:50%;background:rgba(3,146,207,0.18);display:flex;align-items:center;justify-content:center;color:var(--accent2);flex-shrink:0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;">${m.title}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;white-space:pre-wrap;">${m.body}</div>
+    </div>
+    <button onclick="window.dismissBulkMessage('${m.id}')" title="Dismiss" aria-label="Dismiss" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 6px;flex-shrink:0;align-self:flex-start;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>`;
+}
+
+window.dismissBulkMessage=async(messageId)=>{
+  if(!S.student||!messageId) return;
+  const next=[...(S.student.dismissedMessages||[])];
+  if(next.includes(messageId)){ renderBulkMessageBanner(); return; }
+  next.push(messageId);
+  // Optimistic update so the banner disappears immediately; persist in the
+  // background. If Firestore write fails we re-render to surface the message
+  // again (the student would then see it on their next login anyway).
+  S.student.dismissedMessages=next;
+  renderBulkMessageBanner();
+  try{
+    await updateDoc(doc(db,'students',S.student.id),{dismissedMessages:next});
+  }catch(e){
+    console.error('dismissBulkMessage failed:', e);
+    S.student.dismissedMessages=(S.student.dismissedMessages||[]).filter(id=>id!==messageId);
+    renderBulkMessageBanner();
+    showToast('Could not dismiss — try again.');
+  }
+};
+
 // Returns true if S.student is considered a brand-new user — within their
 // first 5 minutes of account creation or with zero submissions to their
 // name. Used to swap "Welcome back," for "Welcome!" in the header.
