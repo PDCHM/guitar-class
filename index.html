@@ -1072,7 +1072,7 @@
     <!-- Header -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
       <div>
-        <h2 style="font-size:26px;margin-bottom:4px;">Welcome, <span id="learnerWelcomeName" style="color:var(--accent);"></span> 👋 <button onclick="window.openProfileModal()" title="Edit profile" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:2px 6px;vertical-align:middle;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 114.03 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button></h2>
+        <h2 style="font-size:26px;margin-bottom:4px;"><span id="learnerWelcomeGreeting">Welcome,</span> <span id="learnerWelcomeName" style="color:var(--accent);"></span> 👋 <button onclick="window.openProfileModal()" title="Edit profile" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:2px 6px;vertical-align:middle;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 114.03 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button></h2>
         <p style="font-size:13px;color:var(--muted);" id="learnerClassLabel">—</p>
       </div>
       <div id="learnerQuickStats" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
@@ -2008,6 +2008,7 @@ function startRealtimeListeners(){
     try{renderAdminUploads();}catch(e){}
     try{renderMyUploads();}catch(e){}
     try{renderQuickStats();}catch(e){}
+    try{setLearnerGreeting();}catch(e){}
   }));
 
   // Songs/resources
@@ -3045,6 +3046,7 @@ window.studentLogin2=async()=>{
     try{renderLearnerMySubmissions();}catch(e){}
     try{renderLearnerLessonSelect();}catch(e){}
     try{renderQuickStats();}catch(e){}
+    try{setLearnerGreeting();}catch(e){}
     setTimeout(()=>{
       try{renderPracticeTools();}catch(e){}
       try{renderChordLibrary();}catch(e){}
@@ -3284,6 +3286,7 @@ async function loadStudentProfile(uid){
     try{renderLearnerMySubmissions();}catch(e){}
     try{renderLearnerLessonSelect();}catch(e){}
     try{renderQuickStats();}catch(e){}
+    try{setLearnerGreeting();}catch(e){}
     setTimeout(()=>{
       try{renderPracticeTools();}catch(e){}
       try{renderChordLibrary();}catch(e){}
@@ -5679,6 +5682,27 @@ window.handleSongPDF=async(input)=>{
 };
 
 // ── QUICK STATS (welcome header) ──────────────────────────────────────────────
+// Returns true if S.student is considered a brand-new user — within their
+// first 5 minutes of account creation or with zero submissions to their
+// name. Used to swap "Welcome back," for "Welcome!" in the header.
+function setLearnerGreeting(){
+  const el=document.getElementById('learnerWelcomeGreeting');
+  if(!el||!S.student) return;
+  // Coerce createdAt across the possible shapes Firestore / our code can return:
+  //   - Firestore Timestamp {seconds, nanoseconds}
+  //   - JS Date
+  //   - ISO string (PDPA consent path sets pdpaDate as ISO; createdAt is usually Timestamp)
+  const ca=S.student.createdAt;
+  let createdMs=0;
+  if(ca && typeof ca.seconds==='number') createdMs=ca.seconds*1000;
+  else if(ca instanceof Date) createdMs=ca.getTime();
+  else if(typeof ca==='string'){ const d=new Date(ca); if(!isNaN(d)) createdMs=d.getTime(); }
+  const justJoined = createdMs && (Date.now()-createdMs) < 5*60*1000;
+  const mine=(S.uploads||[]).filter(u=>u.studentId===S.student.id||u.submittedBy===S.student.name);
+  const isFirstTime = justJoined || mine.length===0;
+  el.textContent = isFirstTime ? 'Welcome!' : 'Welcome back,';
+}
+
 function renderQuickStats(){
   const el=document.getElementById('learnerQuickStats'); if(!el||!S.student)return;
   const mine=S.uploads.filter(u=>u.studentId===S.student.id||u.submittedBy===S.student.name);
