@@ -1113,7 +1113,6 @@
           <label class="form-label">Lesson</label>
           <select class="form-input" id="learnerLesson">
             <option value="">— select lesson —</option>
-            <option>Lesson 1</option><option>Lesson 2</option><option>Lesson 3</option><option>Lesson 4</option><option>Lesson 5</option><option>Lesson 6</option><option>Lesson 7</option><option>Lesson 8</option><option>Lesson 9</option><option>Lesson 10</option><option>Others</option>
           </select>
         </div>
         <div class="form-group">
@@ -2998,6 +2997,7 @@ window.studentLogin2=async()=>{
     try{switchLearnerTab('myresources',document.getElementById('ltab-myresources'));}catch(e){}
     try{renderResourcesPage();}catch(e){}
     try{renderLearnerMySubmissions();}catch(e){}
+    try{renderLearnerLessonSelect();}catch(e){}
     try{renderQuickStats();}catch(e){}
     setTimeout(()=>{
       try{renderPracticeTools();}catch(e){}
@@ -3236,6 +3236,7 @@ async function loadStudentProfile(uid){
     try{switchLearnerTab('myresources',document.getElementById('ltab-myresources'));}catch(e){}
     try{renderResourcesPage();}catch(e){}
     try{renderLearnerMySubmissions();}catch(e){}
+    try{renderLearnerLessonSelect();}catch(e){}
     try{renderQuickStats();}catch(e){}
     setTimeout(()=>{
       try{renderPracticeTools();}catch(e){}
@@ -3290,6 +3291,7 @@ window.switchLearnerTab=(tab,el)=>{
     }
   });
   if(tab==='myresources') renderResourcesPage();
+  if(tab==='submissions') renderLearnerLessonSelect();
   if(tab==='all'){
     // Reload uploads fresh then render
     const feedEl=document.getElementById('learnerAllSubmissions');
@@ -3627,6 +3629,46 @@ function lessonLabelsForCategory(cat){
   if(cat==='Intermediate') return { prefix:'Int. ',  count:10 };
   if(cat==='Advanced')     return { prefix:'Adv. ',  count:7  };
   return { prefix:'Lesson ', count:10 };
+}
+
+// Populates the Submit-tab lesson dropdown for the signed-in student.
+// Source priority:
+//   1. If S.lessons has docs whose names start with the category prefix, use those exact names
+//   2. Otherwise generate from lessonLabelsForCategory (matches completedLessons strings)
+//   3. If no category and no lessons, fall back to the student's completedLessons
+//   4. Final fallback: "Lesson 1..10"
+// Always appends "Others" as the last option.
+function renderLearnerLessonSelect(){
+  const el=document.getElementById('learnerLesson');
+  if(!el) return;
+  const prev=el.value;
+  const cat=S.student?.category;
+  let labels=[];
+  if(cat){
+    const cfg=lessonLabelsForCategory(cat);
+    // Prefer Firestore lessons that match the category prefix, in case admin
+    // added or renamed any. Strip the prefix's trailing description if present.
+    const fromFirestore=(S.lessons||[])
+      .filter(l=>l.name && l.name.startsWith(cfg.prefix))
+      .map(l=>{
+        // "Basic 3: Open Chords" → "Basic 3"; "Basic 3" stays as-is.
+        const colon=l.name.indexOf(':');
+        return colon>0 ? l.name.slice(0,colon).trim() : l.name;
+      });
+    labels=fromFirestore.length
+      ? [...new Set(fromFirestore)]
+      : [...Array(cfg.count)].map((_,i)=>cfg.prefix+(i+1));
+    labels.sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  } else if(S.student?.completedLessons?.length){
+    labels=[...new Set(S.student.completedLessons)]
+      .sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  } else {
+    labels=[...Array(10)].map((_,i)=>'Lesson '+(i+1));
+  }
+  el.innerHTML='<option value="">— select lesson —</option>'
+    +labels.map(l=>`<option>${l}</option>`).join('')
+    +'<option>Others</option>';
+  if(prev) el.value=prev;
 }
 
 function renderAdminStudents(){
