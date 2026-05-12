@@ -2622,20 +2622,77 @@ window.fixAllSongs=async()=>{
   }
 };
 
+// Toggle a single song's published flag from the admin list. Optimistic
+// update: flip the in-memory value + re-render, then persist. Reverts on
+// failure so the UI never shows a different state than Firestore has.
+window.saveSongPublished=async(id,value)=>{
+  const s=S.songs.find(x=>x.id===id); if(!s) return;
+  const prev=s.published;
+  s.published=value;
+  window.renderAdminSongList();
+  try{
+    await updateDoc(doc(db,'songs',id),{published:value});
+  }catch(e){
+    s.published=prev;
+    window.renderAdminSongList();
+    showToast('Could not save: '+(e.message||'unknown'));
+  }
+};
+
+// Toggle a category in/out of a song's visibleTo array from the admin list.
+window.toggleSongVisibility=async(id,category)=>{
+  const s=S.songs.find(x=>x.id===id); if(!s) return;
+  const prev=Array.isArray(s.visibleTo)?[...s.visibleTo]:[];
+  const next=[...prev];
+  const idx=next.indexOf(category);
+  if(idx>=0) next.splice(idx,1); else next.push(category);
+  s.visibleTo=next;
+  window.renderAdminSongList();
+  try{
+    await updateDoc(doc(db,'songs',id),{visibleTo:next});
+  }catch(e){
+    s.visibleTo=prev;
+    window.renderAdminSongList();
+    showToast('Could not save: '+(e.message||'unknown'));
+  }
+};
+
+const SONG_VISIBILITY_CATS=['Basic','Intermediate','Advanced','Others'];
+
 window.renderAdminSongList=function renderAdminSongList(){
   const el=document.getElementById('adminSongList'); if(!el)return;
   if(!S.songs.length){el.innerHTML='<p style="color:var(--muted);font-size:12px;">No songs yet.</p>';return;}
-  el.innerHTML=S.songs.map(s=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:120px;">
-        <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.title}</div>
-        <div style="font-size:11px;color:var(--muted);">${s.lesson?`${s.lesson} · `:''}${s.category||'Uncategorised'} · ${(s.parts||[]).length} file${(s.parts||[]).length!==1?'s':''}</div>
+  el.innerHTML=S.songs.map(s=>{
+    const vt=Array.isArray(s.visibleTo)?s.visibleTo:[];
+    const isLive=s.published!==false;
+    const toggle=`<div onclick="window.saveSongPublished('${s.id}',${!isLive})" title="${isLive?'Live — click to mark as Draft':'Draft — click to publish'}" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none;flex-shrink:0;">
+      <div style="width:34px;height:18px;border-radius:9px;background:${isLive?'var(--success)':'var(--border)'};position:relative;transition:background .2s;">
+        <div style="width:14px;height:14px;border-radius:50%;background:#fff;position:absolute;top:2px;left:${isLive?'18px':'2px'};transition:left .2s;box-shadow:0 1px 2px rgba(0,0,0,0.2);"></div>
       </div>
-      <div style="display:flex;gap:6px;flex-shrink:0;">
-        <button class="btn btn-ghost btn-sm" onclick="window.editSong('${s.id}')">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="window.deleteSong('${s.id}')">Delete</button>
+      <span style="font-size:10px;font-weight:700;color:${isLive?'var(--success)':'var(--muted)'};letter-spacing:.05em;text-transform:uppercase;">${isLive?'Live':'Draft'}</span>
+    </div>`;
+    const pills=SONG_VISIBILITY_CATS.map(c=>{
+      const on=vt.includes(c);
+      return `<span onclick="window.toggleSongVisibility('${s.id}','${c}')" title="${on?`Visible to ${c} — click to hide`:`Hidden from ${c} — click to show`}" style="cursor:pointer;font-size:11px;padding:3px 10px;border-radius:14px;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'rgba(238,64,53,0.1)':'transparent'};color:${on?'var(--accent)':'var(--muted)'};font-weight:${on?'600':'400'};user-select:none;transition:all .15s;">${c}</span>`;
+    }).join('');
+    return `
+    <div style="background:var(--surface2);border-radius:8px;margin-bottom:8px;padding:10px 12px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:140px;">
+          <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.title}</div>
+          <div style="font-size:11px;color:var(--muted);">${s.lesson?`${s.lesson} · `:''}${s.category||'Uncategorised'} · ${(s.parts||[]).length} file${(s.parts||[]).length!==1?'s':''}</div>
+        </div>
+        ${toggle}
       </div>
-    </div>`).join('');
+      <div style="display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap;">
+        ${pills}
+        <div style="display:flex;gap:6px;margin-left:auto;">
+          <button class="btn btn-ghost btn-sm" onclick="window.editSong('${s.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="window.deleteSong('${s.id}')">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── ADMIN CATEGORIES ──────────────────────────────────────────────────────────
