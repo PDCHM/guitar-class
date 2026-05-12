@@ -437,27 +437,6 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Visible to</label>
-        <div id="visibleToOptions" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
-          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
-            <input type="checkbox" value="Basic" style="accent-color:var(--accent);"> Basic
-          </label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
-            <input type="checkbox" value="Intermediate" style="accent-color:var(--accent);"> Intermediate
-          </label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
-            <input type="checkbox" value="Advanced" style="accent-color:var(--accent);"> Advanced
-          </label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
-            <input type="checkbox" value="Others" style="accent-color:var(--accent);"> Others
-          </label>
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:6px;">
-          Leave all unchecked = only visible to students whose category matches the Category field above.
-        </div>
-      </div>
-
       <!-- Multiple Video Links -->
       <div style="margin-bottom:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
@@ -2514,15 +2493,6 @@ window.adminSaveSong=async(saveType)=>{
   const yt=videoLinks.length?videoLinks[0].url:'';
   const pdfUrl=document.getElementById('adminSongPDF')?.value.trim()||'';
   const lesson=document.getElementById('adminSongLesson').value||'';
-  // Direct per-value checkbox read. Avoids any pseudo-class quirks that
-  // could keep `input:checked` from matching (e.g., if a checkbox state was
-  // set via property rather than attribute, some browsers were known to be
-  // inconsistent across SDK versions).
-  const visibleTo = [];
-  ['Basic','Intermediate','Advanced','Others'].forEach(catName => {
-    const cb = document.querySelector('#visibleToOptions input[value="' + catName + '"]');
-    if(cb && cb.checked) visibleTo.push(catName);
-  });
   const published=saveType==='draft'?false:(document.getElementById('adminSongPublish')?document.getElementById('adminSongPublish').checked:true);
   if(!title){showToast('Please enter a song title.');return;}
   const btn=document.getElementById('saveSongBtn');
@@ -2547,15 +2517,14 @@ window.adminSaveSong=async(saveType)=>{
     }
     status.textContent='Saving to database...';
     if(S.editingId){
-      await updateDoc(doc(db,'songs',S.editingId),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,visibleTo,published});
+      await updateDoc(doc(db,'songs',S.editingId),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,published});
       showToast(`"${title}" updated!`); cancelEditSong(); await fetchAll();
     } else {
-      await addDoc(collection(db,'songs'),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,visibleTo,published,createdAt:serverTimestamp()});
+      await addDoc(collection(db,'songs'),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,published,createdAt:serverTimestamp()});
       showToast(published?`"${title}" published!`:`"${title}" saved as draft!`); await fetchAll(true);
       document.getElementById('adminSongTitle').value='';
       if(document.getElementById('adminSongPDF')) document.getElementById('adminSongPDF').value='';
       document.getElementById('adminSongLesson').value='';
-      document.querySelectorAll('#visibleToOptions input').forEach(i=>{i.checked=false;});
       S_videoLinks=[{label:'',url:''}]; renderVideoLinks();
       initPartRows();
     }
@@ -2580,9 +2549,6 @@ window.editSong=id=>{
   }
   renderVideoLinks();
   document.getElementById('adminSongCat').value=s.category||'';
-  // Pre-check the Visible-to boxes for this resource.
-  const visibleTo=Array.isArray(s.visibleTo)?s.visibleTo:[];
-  document.querySelectorAll('#visibleToOptions input').forEach(i=>{ i.checked=visibleTo.includes(i.value); });
   const pt=document.getElementById('publishToggle');const pc=document.getElementById('adminSongPublish');if(pt&&pc){const pub=s.published!==false;pc.checked=pub;pub?pt.classList.add('on'):pt.classList.remove('on');pt.style.background=pub?'var(--accent)':'var(--surface2)';pt.querySelector('div').style.left=pub?'23px':'3px';}
   S.partRows=(s.parts||[]).map(p=>({name:p.name,file:null,url:p.url}));
   renderPartRows();
@@ -2599,7 +2565,6 @@ window.cancelEditSong=()=>{
   document.getElementById('adminSongTitle').value='';
   document.getElementById('adminSongLesson').value='';
   const pdfEl=document.getElementById('adminSongPDF'); if(pdfEl) pdfEl.value='';
-  document.querySelectorAll('#visibleToOptions input').forEach(i=>{i.checked=false;});
   document.getElementById('adminSongVideoName').textContent='';
   document.getElementById('adminSongVideo').value='';
   document.getElementById('songFormTitle').textContent='Add Resource';
@@ -3513,63 +3478,15 @@ window.setResSort=(mode,el)=>{
 function renderResourcesPage(){
   if(!S.student) return;
   const cat=S.student.category||'';
-  // If no category assigned yet, show pending message
-  if(!cat){
-    const grid=document.getElementById('resourcesGrid');
-    if(grid) grid.innerHTML=`
-      <div style="grid-column:1/-1;text-align:center;padding:40px 20px;">
-        <div style="width:56px;height:56px;border-radius:14px;background:rgba(245,203,98,0.1);border:1px solid rgba(245,203,98,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:#a07a00;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-        <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px;">Waiting for class assignment</div>
-        <div style="font-size:13px;color:var(--muted);">Your teacher will assign you to a category soon. Resources will appear here once assigned.</div>
-      </div>`;
-    const filterEl=document.getElementById('resourcesCatFilter');
-    if(filterEl) filterEl.innerHTML='';
-    return;
-  }
   const classGrp=S.student.classGroup||'';
-  // Visibility filter — defensive against every data shape `visibleTo` might
-  // arrive in: Array (normal), comma-separated string (legacy/edge), null,
-  // undefined, missing field. Comparisons are case- and whitespace-tolerant
-  // because checkbox values are static ("Basic" / "Intermediate" / etc.)
-  // while student.category comes from the admin-defined categories
-  // collection — a one-letter case mismatch silently broke filtering before.
-  const norm=v=>(v==null?'':String(v)).trim().toLowerCase();
-  const visibleToArr=s=>{
-    if(Array.isArray(s.visibleTo)) return s.visibleTo;
-    if(typeof s.visibleTo==='string' && s.visibleTo.trim()){
-      return s.visibleTo.split(',').map(x=>x.trim()).filter(Boolean);
-    }
-    return [];
-  };
-  const catN=norm(cat);
-  // Permissive visibility: show a resource to a student if ANY of:
-  //   - visibleTo includes their category
-  //   - visibleTo includes "All"
-  //   - the resource's own category matches the student's
-  // (The fourth condition in the spec — empty visibleTo AND category match —
-  // is already covered by the third bullet.)
-  let list=S.songs.filter(s=>{
-    if(s.published===false) return false;
-    if(!catN) return true;
-    const vt=visibleToArr(s);
-    if(vt.some(v=>norm(v)===catN)) return true;
-    if(vt.some(v=>norm(v)==='all')) return true;
-    if(norm(s.category)===catN) return true;
-    return false;
-  });
-  // Per-tab pill filter — also honours visibleTo (including "All") and is
-  // case-tolerant, so a shared resource appears under the viewing student's
-  // own-category pill, not just under the pill matching the resource's
-  // literal category field.
+  // Show every published resource to every logged-in student. Admins gate
+  // visibility per-resource using the publish toggle on the Add Resource
+  // form. Category is now display-only (badge on each card + browse pill).
+  let list=S.songs.filter(s=>s.published!==false);
+  // Per-tab pill filter is a browsing convenience: clicking a category pill
+  // narrows the visible list to resources tagged with that category.
   if(_resCurCat&&_resCurCat!=='all'){
-    const pillN=norm(_resCurCat);
-    list=list.filter(s=>{
-      if(norm(s.category)===pillN) return true;
-      const vt=visibleToArr(s);
-      if(vt.some(v=>norm(v)===pillN)) return true;
-      if(vt.some(v=>norm(v)==='all')) return true;
-      return false;
-    });
+    list=list.filter(s=>s.category===_resCurCat);
   }
   // Sort
   if(S_resSort==='lesson'){
@@ -3584,21 +3501,6 @@ function renderResourcesPage(){
     list.sort((a,b)=>S_resSortDir*(a.category||'').localeCompare(b.category||''));
   } else {
     list.sort((a,b)=>S_resSortDir*a.title.localeCompare(b.title));
-  }
-  // In-page diagnostic strip — small grey line so admin/student can verify
-  // the filter state live without opening DevTools. Shows how many of all
-  // published songs ended up visible and what category was used.
-  const totalPublished=S.songs.filter(s=>s.published!==false).length;
-  const grid=document.getElementById('resourcesGrid');
-  if(grid && grid.parentElement){
-    let diagEl=document.getElementById('resourcesFilterDiag');
-    if(!diagEl){
-      diagEl=document.createElement('div');
-      diagEl.id='resourcesFilterDiag';
-      diagEl.style.cssText='font-size:11px;color:var(--muted);margin-bottom:8px;opacity:0.7;';
-      grid.parentElement.insertBefore(diagEl, grid);
-    }
-    diagEl.textContent=`${list.length} of ${totalPublished} resources visible · your category: "${cat}"`;
   }
   // Build category filter pills
   const cats=[...new Set(list.map(s=>s.category).filter(Boolean))];
