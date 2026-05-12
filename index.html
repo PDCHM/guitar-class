@@ -2515,9 +2515,25 @@ window.adminSaveSong=async(saveType)=>{
   const pdfUrl=document.getElementById('adminSongPDF')?.value.trim()||'';
   console.log('[adminSaveSong] pdfUrl at save time =', JSON.stringify(pdfUrl));
   const lesson=document.getElementById('adminSongLesson').value||'';
-  const visibleTo=[...document.querySelectorAll('#visibleToOptions input:checked')].map(i=>i.value);
-  // TEMP debug alert — remove once visibleTo flow is verified.
-  alert('Saving visibleTo: ' + JSON.stringify(visibleTo));
+  // Direct per-value checkbox read. Avoids any pseudo-class quirks that
+  // could keep `input:checked` from matching (e.g., if a checkbox state was
+  // set via property rather than attribute, some browsers were known to be
+  // inconsistent across SDK versions).
+  const visibleTo = [];
+  ['Basic','Intermediate','Advanced','Others'].forEach(catName => {
+    const cb = document.querySelector('#visibleToOptions input[value="' + catName + '"]');
+    if(cb && cb.checked) visibleTo.push(catName);
+  });
+  // TEMP debug — also reports container/state so we can see what the DOM
+  // actually looks like at save time. Remove once verified.
+  const _vtContainer = document.querySelector('#visibleToOptions');
+  const _vtTotal = _vtContainer ? _vtContainer.querySelectorAll('input[type="checkbox"]').length : 0;
+  alert(
+    'visibleTo being saved: ' + JSON.stringify(visibleTo) +
+    '\ncontainer found: ' + !!_vtContainer +
+    '\ntotal checkboxes in container: ' + _vtTotal +
+    '\nediting existing? ' + (!!S.editingId)
+  );
   const published=saveType==='draft'?false:(document.getElementById('adminSongPublish')?document.getElementById('adminSongPublish').checked:true);
   if(!title){showToast('Please enter a song title.');return;}
   const btn=document.getElementById('saveSongBtn');
