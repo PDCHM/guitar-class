@@ -3619,6 +3619,16 @@ function renderAdminPendingBanner(){
   }
 }
 
+// Returns { prefix, count } for lesson-completion labels based on student
+// category. The same labels are used for the admin checkboxes and the student
+// Progress tab so the strings stored in students.completedLessons match.
+function lessonLabelsForCategory(cat){
+  if(cat==='Basic')        return { prefix:'Basic ', count:10 };
+  if(cat==='Intermediate') return { prefix:'Int. ',  count:10 };
+  if(cat==='Advanced')     return { prefix:'Adv. ',  count:7  };
+  return { prefix:'Lesson ', count:10 };
+}
+
 function renderAdminStudents(){
   const el=document.getElementById('adminStudentList'); if(!el)return;
   if(!S.students||!S.students.length){el.innerHTML='<p style="font-size:13px;color:var(--muted);">No students registered yet.</p>';return;}
@@ -3680,14 +3690,14 @@ function renderAdminStudents(){
       </div>
       <!-- Lesson completion -->
       <div style="margin-top:8px;">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Mark lessons complete</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Mark lessons complete${s.category?' ('+s.category+')':''}</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;">
-          ${[...Array(10)].map((_,i)=>{
-            const l='Lesson '+(i+1);
+          ${(()=>{const cfg=lessonLabelsForCategory(s.category);return [...Array(cfg.count)].map((_,i)=>{
+            const l=cfg.prefix+(i+1);
             const done=(s.completedLessons||[]).includes(l);
             return '<label style="display:flex;align-items:center;gap:3px;font-size:11px;cursor:pointer;padding:2px 7px;border-radius:6px;background:'+(done?'rgba(238,64,53,0.12)':'var(--surface)')+';border:1px solid '+(done?'rgba(238,64,53,0.3)':'var(--border)')+';">'
               +'<input type="checkbox" '+(done?'checked ':'')+' style="accent-color:var(--accent);" onchange="window.toggleLessonComplete(\''+s.id+'\',\''+l+'\',this.checked)"> '+l+'</label>';
-          }).join('')}
+          }).join('');})()}
         </div>
       </div>
     </div>`;
@@ -4519,10 +4529,13 @@ async function renderProgressTab(){
   const earned=computeBadges(S.student, S.uploads, logs);
   renderBadges(earned);
 
-  // Lesson progress
+  // Lesson progress — labels mirror the admin "Mark lessons complete"
+  // checkboxes, scoped to this student's category so the strings match
+  // exactly what's stored in students.completedLessons.
   const el=document.getElementById('progressLessons'); if(!el)return;
   const completedLessons=new Set(S.student.completedLessons||[]);
-  const allLessons=S.lessons.length?S.lessons.map(l=>l.name):[...Array(10)].map((_,i)=>'Lesson '+(i+1));
+  const cfg=lessonLabelsForCategory(S.student.category);
+  const allLessons=[...Array(cfg.count)].map((_,i)=>cfg.prefix+(i+1));
   const pct=allLessons.length?Math.round(completedLessons.size/allLessons.length*100):0;
 
   el.innerHTML=`
@@ -5304,7 +5317,8 @@ function renderQuickStats(){
   const el=document.getElementById('learnerQuickStats'); if(!el||!S.student)return;
   const mine=S.uploads.filter(u=>u.studentId===S.student.id||u.submittedBy===S.student.name);
   const completedLessons=(S.student.completedLessons||[]).length;
-  const totalLessons=S.lessons.length||10;
+  // Match the Progress tab — totals are scoped to the student's category.
+  const totalLessons=lessonLabelsForCategory(S.student.category).count;
   const pct=Math.round(completedLessons/totalLessons*100);
   el.innerHTML=`
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 14px;text-align:center;min-width:70px;">
