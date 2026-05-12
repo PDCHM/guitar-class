@@ -3502,17 +3502,36 @@ function renderResourcesPage(){
   //   1. Hide explicit drafts (published === false). undefined => published.
   //   2. Student with no category sees everything (admin still in setup).
   //   3. visibleTo array, when set, is the source of truth → share across cats.
-  //   4. Otherwise require strict category match (no more untagged-shown-to-all).
+  //   4. Otherwise require strict category match.
+  // Strings are trimmed defensively in case admin-typed categories pick up
+  // trailing whitespace from copy/paste — student.category and visibleTo
+  // entries flow from separate inputs and must match exactly.
+  const catTrim=(cat||'').trim();
+  const sameCat=(a,b)=>(a||'').trim()===(b||'').trim();
   let list=S.songs.filter(s=>{
+    // TEMP debug — remove once visibleTo filter is confirmed working.
+    console.log('[filter]', s.title,
+      '| visibleTo:', s.visibleTo,
+      '(type:', typeof s.visibleTo, ', isArray:', Array.isArray(s.visibleTo), ')',
+      '| song.category:', s.category,
+      '| studentCat:', catTrim);
     if(s.published===false) return false;
-    if(!cat) return true;
+    if(!catTrim) return true;
     if(Array.isArray(s.visibleTo) && s.visibleTo.length>0){
-      return s.visibleTo.includes(cat);
+      return s.visibleTo.some(v=>sameCat(v,catTrim));
     }
-    return s.category===cat;
+    return sameCat(s.category,catTrim);
   });
-  // Per-tab pill filter — only when student picks a specific category pill.
-  if(_resCurCat&&_resCurCat!=='all') list=list.filter(s=>s.category===_resCurCat);
+  // Per-tab pill filter — also honour visibleTo so a shared resource appears
+  // under the viewing student's own-category pill, not just under the pill
+  // matching the resource's literal category field.
+  if(_resCurCat&&_resCurCat!=='all'){
+    list=list.filter(s=>{
+      if(sameCat(s.category,_resCurCat)) return true;
+      if(Array.isArray(s.visibleTo) && s.visibleTo.some(v=>sameCat(v,_resCurCat))) return true;
+      return false;
+    });
+  }
   // Sort
   if(S_resSort==='lesson'){
     list.sort((a,b)=>{
