@@ -3794,6 +3794,25 @@ const TOOL_LEVELS = {
   scales:'all', rhythm:'all', picking:'all'
 };
 
+// Per-tool published flag. Missing entries are treated as published (true).
+// Keys: 'scales_<group>' for scale tools; pattern doc id for patterns; etc.
+const TOOL_PUBLISHED = {};
+const isPublished = (v)=>v!==false; // missing/true => published
+const isToolPublished = (id)=>isPublished(TOOL_PUBLISHED[id]);
+
+// Toggle pill markup. saveFnName is the global function name (string) to call
+// when the user clicks. The new value is computed inline so the call site
+// flips published on each press.
+function publishToggleHTML(id, published, saveFnName){
+  const isOn = isPublished(published);
+  return `<div onclick="${saveFnName}('${id}',${!isOn})" title="${isOn?'Published — click to unpublish':'Unpublished — click to publish'}" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none;flex-shrink:0;">
+    <div style="width:34px;height:18px;border-radius:9px;background:${isOn?'var(--success)':'var(--border)'};position:relative;transition:background .2s;">
+      <div style="width:14px;height:14px;border-radius:50%;background:#fff;position:absolute;top:2px;left:${isOn?'18px':'2px'};transition:left .2s;box-shadow:0 1px 2px rgba(0,0,0,0.2);"></div>
+    </div>
+    <span style="font-size:10px;font-weight:700;color:${isOn?'var(--success)':'var(--muted)'};letter-spacing:.05em;text-transform:uppercase;">${isOn?'Live':'Draft'}</span>
+  </div>`;
+}
+
 // Practice video URLs loaded from Firestore
 const PATTERN_VIDEOS = {};
 
@@ -3805,13 +3824,48 @@ window.switchPracticeTab=(tab,el)=>{
     if(p) p.style.display=t===tab?'block':'none';
     if(b){ b.style.borderColor=t===tab?'var(--accent)':'transparent'; b.style.color=t===tab?'var(--accent)':'var(--muted)'; }
   });
-  if(tab==='scales'){ populateScaleDropdown(); drawFretboard(); }
+  if(tab==='scales'){ applyScaleVisibility(); populateScaleDropdown(); drawFretboard(); }
   if(tab==='rhythm') renderPatternCards('strumming','strummingGrid');
   if(tab==='picking') renderPatternCards('plucking','pluckingGrid');
   if(tab==='progressions') renderProgressions();
   // Stop any playing progression when switching away
   if(tab!=='progressions'&&_progState.playing) stopProgression();
 };
+
+// Hide unpublished scale pills from students. If none are published, hide
+// the whole scales panel and show "No scales available yet."
+function applyScaleVisibility(){
+  // Admin sees everything as-is — no filtering on their view.
+  if(S.isAdmin) return;
+  const groups=['penta','modes','blues','majmin','triads','chromatic','diatonic','diminished','caged'];
+  let publishedCount=0, firstPublished=null;
+  groups.forEach(g=>{
+    const pub=isToolPublished('scales_'+g);
+    const btn=document.getElementById('scaleBtn-'+g);
+    if(btn) btn.style.display = pub ? '' : 'none';
+    if(pub){ publishedCount++; if(!firstPublished) firstPublished=g; }
+  });
+  const panel=document.getElementById('ppanel-scales');
+  let emptyEl=document.getElementById('scalesEmptyMsg');
+  if(publishedCount===0){
+    if(panel) panel.style.display='none';
+    if(!emptyEl && panel?.parentNode){
+      emptyEl=document.createElement('p');
+      emptyEl.id='scalesEmptyMsg';
+      emptyEl.style.cssText='color:var(--muted);font-size:13px;';
+      emptyEl.textContent='No scales available yet. Check back soon!';
+      panel.parentNode.insertBefore(emptyEl, panel.nextSibling);
+    } else if(emptyEl){ emptyEl.style.display='block'; }
+  } else {
+    if(panel && panel.style.display==='none') panel.style.display='block';
+    if(emptyEl) emptyEl.style.display='none';
+    // If active scale group is now unpublished, jump to first published.
+    if(!isToolPublished('scales_'+_currentScaleGroup) && firstPublished){
+      const btn=document.getElementById('scaleBtn-'+firstPublished);
+      window.switchScale(firstPublished, btn);
+    }
+  }
+}
 
 window.switchScale=(group,el)=>{
   _currentScaleGroup=group;
@@ -4052,9 +4106,11 @@ function renderArrows(arrowStr){
 
 function renderPatternCards(type, gridId){
   const grid=document.getElementById(gridId); if(!grid)return;
-  const patterns=type==='strumming'?STRUM_PATTERNS:PLUCK_PATTERNS;
+  const all=type==='strumming'?STRUM_PATTERNS:PLUCK_PATTERNS;
+  // Students only see published patterns; missing field = published.
+  const patterns=all.filter(p=>isPublished(p.published));
   if(!patterns.length){
-    grid.innerHTML=`<p style="color:var(--muted);font-size:13px;">No ${type} patterns yet.</p>`;
+    grid.innerHTML=`<p style="color:var(--muted);font-size:13px;">No ${type} patterns available yet. Check back soon!</p>`;
     return;
   }
   grid.innerHTML='';
@@ -4113,12 +4169,16 @@ function renderAdminScaleTools(){
     {key:'scales_diminished',name:'Diminished Scales'},
     {key:'scales_caged',    name:'CAGED System'},
   ];
-  el.innerHTML=tools.map((t,i)=>`
-    <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:10px;padding:12px 14px;flex-wrap:wrap;">
+  el.innerHTML=tools.map((t,i)=>{
+    const pub=TOOL_PUBLISHED[t.key];
+    const dim=isPublished(pub)?'':'opacity:0.55;';
+    return `
+    <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:10px;padding:12px 14px;flex-wrap:wrap;${dim}">
       <div style="width:24px;height:24px;border-radius:50%;background:rgba(238,64,53,0.12);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;">${i+1}</div>
       <div style="flex:1;font-size:13px;color:var(--text);">${t.name}</div>
+      ${publishToggleHTML(t.key, pub, 'window.saveToolPublished')}
       ${levelSelect(t.key, TOOL_LEVELS[t.key]||'all')}
-    </div>`).join('');
+    </div>`;}).join('');
 }
 
 function renderAdminPatternTools(type, elId, patterns){
@@ -4130,11 +4190,14 @@ function renderAdminPatternTools(type, elId, patterns){
     el.innerHTML=`<p style="color:var(--muted);font-size:13px;padding:8px 0;">No patterns yet. Click "+ Add Pattern" to create one.</p>`;
     return;
   }
-  el.innerHTML=patterns.map((p,i)=>`
-    <div style="background:var(--surface2);border-radius:10px;padding:14px;" id="admin-${p.id}">
+  el.innerHTML=patterns.map((p,i)=>{
+    const dim=isPublished(p.published)?'':'opacity:0.55;';
+    return `
+    <div style="background:var(--surface2);border-radius:10px;padding:14px;${dim}" id="admin-${p.id}">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
         <div style="width:24px;height:24px;border-radius:50%;background:${accentBg};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${accentColor};flex-shrink:0;">${i+1}</div>
         <input class="form-input" style="flex:1;min-width:140px;margin-bottom:0;font-size:13px;font-weight:500;" value="${p.name}" id="name-${p.id}" placeholder="Pattern name" onchange="window.savePatternName('${p.id}','${type}',this.value)">
+        ${publishToggleHTML(p.id, p.published, 'window.savePatternPublished')}
         ${levelSelect(p.id, TOOL_LEVELS[p.id]||'all')}
         <button class="btn btn-danger btn-sm" onclick="window.deletePattern('${p.id}','${type}','${p.name}')">Remove</button>
       </div>
@@ -4158,7 +4221,7 @@ function renderAdminPatternTools(type, elId, patterns){
         <button class="btn btn-sm" style="background:rgba(238,64,53,0.1);color:var(--accent);border:1px solid rgba(238,64,53,0.25);white-space:nowrap;" onclick="window.savePatternUrl('${p.id}')">Save URL</button>
       </div>
       <div id="preview-${p.id}" style="margin-top:10px;"></div>
-    </div>`).join('');
+    </div>`;}).join('');
 
   // Live arrow preview on input
   if(isStrum){
@@ -4287,9 +4350,39 @@ window.uploadPatternVideo=async(id,input)=>{
 
 window.saveToolLevel=async(toolId,level)=>{
   try{
-    await setDoc(doc(db,'toolSettings',toolId),{level});
+    await setDoc(doc(db,'toolSettings',toolId),{level},{merge:true});
     TOOL_LEVELS[toolId]=level;
     showToast('Level updated!');
+  }catch(e){showToast('Error: '+e.message);}
+};
+
+window.saveToolPublished=async(toolId,value)=>{
+  try{
+    await setDoc(doc(db,'toolSettings',toolId),{published:value},{merge:true});
+    TOOL_PUBLISHED[toolId]=value;
+    renderAdminScaleTools();
+    showToast(value?'Published':'Unpublished');
+  }catch(e){showToast('Error: '+e.message);}
+};
+
+window.savePatternPublished=async(id,value)=>{
+  try{
+    await updateDoc(doc(db,'practicePatterns',id),{published:value});
+    const strum=STRUM_PATTERNS.find(p=>p.id===id);
+    const pluck=PLUCK_PATTERNS.find(p=>p.id===id);
+    if(strum){ strum.published=value; renderAdminPatternTools('strumming','adminStrumTools',STRUM_PATTERNS); }
+    if(pluck){ pluck.published=value; renderAdminPatternTools('plucking','adminPluckTools',PLUCK_PATTERNS); }
+    showToast(value?'Published':'Unpublished');
+  }catch(e){showToast('Error: '+e.message);}
+};
+
+window.saveProgressionPublished=async(id,value)=>{
+  try{
+    await updateDoc(doc(db,'chordProgressions',id),{published:value});
+    const p=PROGRESSIONS.find(p=>p.id===id);
+    if(p) p.published=value;
+    renderAdminProgressionsList();
+    showToast(value?'Published':'Unpublished');
   }catch(e){showToast('Error: '+e.message);}
 };
 
@@ -4299,7 +4392,11 @@ async function loadToolSettings(){
       getDocs(collection(db,'toolSettings')),
       getDocs(collection(db,'practicePatterns')),
     ]);
-    toolSnap.docs.forEach(d=>{ TOOL_LEVELS[d.id]=d.data().level||'all'; });
+    toolSnap.docs.forEach(d=>{
+      const data=d.data();
+      TOOL_LEVELS[d.id]=data.level||'all';
+      if('published' in data) TOOL_PUBLISHED[d.id]=data.published;
+    });
 
     const strumFromDB=[], pluckFromDB=[];
     patternSnap.docs.forEach(d=>{
@@ -5414,16 +5511,19 @@ function renderAdminProgressionsList(){
     el.innerHTML='<p style="font-size:13px;color:var(--muted);padding:8px 0;">No progressions yet. Click "+ Add Progression" to create one.</p>';
     return;
   }
-  el.innerHTML=PROGRESSIONS.map((p,i)=>`
-    <div style="background:var(--surface2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+  el.innerHTML=PROGRESSIONS.map((p,i)=>{
+    const dim=isPublished(p.published)?'':'opacity:0.55;';
+    return `
+    <div style="background:var(--surface2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;${dim}">
       <div style="width:24px;height:24px;border-radius:50%;background:rgba(238,64,53,0.12);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;">${i+1}</div>
       <div style="flex:1;">
         <div style="font-size:13px;font-weight:500;color:var(--text);">${p.name}</div>
         <div style="font-size:11px;color:var(--muted);">${p.key} · ${p.chords?.join(' – ')||''} · ${p.bpm}bpm · ${p.level||'all'}</div>
       </div>
+      ${publishToggleHTML(p.id, p.published, 'window.saveProgressionPublished')}
       <button onclick="window.openAddProgressionModal('${p.id}')" class="btn btn-ghost btn-sm">Edit</button>
       <button onclick="window.deleteProgression('${p.id}')" class="btn btn-danger btn-sm">Remove</button>
-    </div>`).join('');
+    </div>`;}).join('');
 }
 
 // ── Student: render progression cards ─────────────────────────────────────────
@@ -5431,12 +5531,13 @@ function renderProgressions(){
   const grid=document.getElementById('progressionsGrid'); if(!grid)return;
   const studentCat=S.student?.category||'';
   const visible=PROGRESSIONS.filter(p=>{
+    if(!isPublished(p.published)) return false;
     if(!p.level||p.level==='all') return true;
     if(!studentCat) return true;
     return p.level===studentCat;
   });
   if(!visible.length){
-    grid.innerHTML='<p style="color:var(--muted);font-size:13px;">No chord progressions assigned yet. Check back soon!</p>';
+    grid.innerHTML='<p style="color:var(--muted);font-size:13px;">No chord progressions available yet. Check back soon!</p>';
     return;
   }
   grid.innerHTML='';
