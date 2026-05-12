@@ -2509,8 +2509,6 @@ window.adminSaveSong=async(saveType)=>{
   console.log('[adminSaveSong] pdfUrl at save time =', JSON.stringify(pdfUrl));
   const lesson=document.getElementById('adminSongLesson').value||'';
   const visibleTo=[...document.querySelectorAll('#visibleToOptions input:checked')].map(i=>i.value);
-  // TEMP debug — remove once verified that visibleTo is being saved correctly.
-  console.log('[adminSaveSong] visibleTo =', visibleTo);
   const published=saveType==='draft'?false:(document.getElementById('adminSongPublish')?document.getElementById('adminSongPublish').checked:true);
   if(!title){showToast('Please enter a song title.');return;}
   const btn=document.getElementById('saveSongBtn');
@@ -3498,38 +3496,37 @@ function renderResourcesPage(){
     return;
   }
   const classGrp=S.student.classGroup||'';
-  // Visibility filter — single pass over S.songs.
-  //   1. Hide explicit drafts (published === false). undefined => published.
-  //   2. Student with no category sees everything (admin still in setup).
-  //   3. visibleTo array, when set, is the source of truth → share across cats.
-  //   4. Otherwise require strict category match.
-  // Strings are trimmed defensively in case admin-typed categories pick up
-  // trailing whitespace from copy/paste — student.category and visibleTo
-  // entries flow from separate inputs and must match exactly.
-  const catTrim=(cat||'').trim();
-  const sameCat=(a,b)=>(a||'').trim()===(b||'').trim();
-  let list=S.songs.filter(s=>{
-    // TEMP debug — remove once visibleTo filter is confirmed working.
-    console.log('[filter]', s.title,
-      '| visibleTo:', s.visibleTo,
-      '(type:', typeof s.visibleTo, ', isArray:', Array.isArray(s.visibleTo), ')',
-      '| song.category:', s.category,
-      '| studentCat:', catTrim);
-    if(s.published===false) return false;
-    if(!catTrim) return true;
-    if(Array.isArray(s.visibleTo) && s.visibleTo.length>0){
-      return s.visibleTo.some(v=>sameCat(v,catTrim));
+  // Visibility filter — defensive against every data shape `visibleTo` might
+  // arrive in: Array (normal), comma-separated string (legacy/edge), null,
+  // undefined, missing field. Comparisons are case- and whitespace-tolerant
+  // because checkbox values are static ("Basic" / "Intermediate" / etc.)
+  // while student.category comes from the admin-defined categories
+  // collection — a one-letter case mismatch silently broke filtering before.
+  const norm=v=>(v==null?'':String(v)).trim().toLowerCase();
+  const visibleToArr=s=>{
+    if(Array.isArray(s.visibleTo)) return s.visibleTo;
+    if(typeof s.visibleTo==='string' && s.visibleTo.trim()){
+      return s.visibleTo.split(',').map(x=>x.trim()).filter(Boolean);
     }
-    return sameCat(s.category,catTrim);
+    return [];
+  };
+  const catN=norm(cat);
+  let list=S.songs.filter(s=>{
+    if(s.published===false) return false;
+    if(!catN) return true;
+    const vt=visibleToArr(s);
+    if(vt.length>0) return vt.some(v=>norm(v)===catN);
+    return norm(s.category)===catN;
   });
-  // Per-tab pill filter — also honour visibleTo so a shared resource appears
-  // under the viewing student's own-category pill, not just under the pill
-  // matching the resource's literal category field.
+  // Per-tab pill filter — also honours visibleTo and is case-tolerant, so a
+  // shared resource appears under the viewing student's own-category pill,
+  // not just under the pill matching the resource's literal category field.
   if(_resCurCat&&_resCurCat!=='all'){
+    const pillN=norm(_resCurCat);
     list=list.filter(s=>{
-      if(sameCat(s.category,_resCurCat)) return true;
-      if(Array.isArray(s.visibleTo) && s.visibleTo.some(v=>sameCat(v,_resCurCat))) return true;
-      return false;
+      if(norm(s.category)===pillN) return true;
+      const vt=visibleToArr(s);
+      return vt.some(v=>norm(v)===pillN);
     });
   }
   // Sort
