@@ -2229,10 +2229,22 @@ window.filterCat=(cat,el)=>{
   el.classList.add('active'); renderLibrary();
 };
 
-window.openPart=(songId,partName)=>{
+// openPart accepts EITHER a numeric index (preferred — robust against
+// duplicate part names and apostrophes) OR a name string (legacy callers).
+// Internally routes PDFs to openPdfViewer and other media to openPartModal.
+window.openPart=(songId,partRef)=>{
   const s=S.songs.find(x=>x.id===songId); if(!s)return;
-  const p=(s.parts||[]).find(x=>x.name===partName);
-  window.openPartModal(songId, partName, p?.url||'');
+  const parts=s.parts||[];
+  const p=typeof partRef==='number' ? parts[partRef] : parts.find(x=>x.name===partRef);
+  if(!p){ showToast('Part not found.'); return; }
+  if(!p.url){ showToast('No file attached to this part yet.'); return; }
+  const cleanUrl=p.url.split('?')[0].toLowerCase();
+  const isPdf=p.type==='pdf' || cleanUrl.endsWith('.pdf') || cleanUrl.includes('.pdf');
+  if(isPdf){
+    window.openPdfViewer(p.url, `${s.title} — ${p.name}`);
+  } else {
+    window.openPartModal(songId, p.name, p.url);
+  }
 };
 
 window.openPartModal=(songId,partName,url)=>{
@@ -3444,15 +3456,33 @@ function renderResourcesGrid(list){
   const grid=document.getElementById('resourcesGrid');
   if(!list.length){grid.innerHTML='<p style="color:var(--muted);font-size:13px;">No resources assigned yet. Check back soon!</p>';return;}
   grid.innerHTML=list.map(s=>{
-    const parts=(s.parts||[]).map(p=>{
-      const isPdf=p.url&&(p.url.includes('.pdf')||p.type==='pdf');
-      return `<span class="part-chip chip-tenor" onclick="${isPdf?`window.openPdfViewer('${p.url}','${p.name}')`:`window.openPart('${s.id}','${p.name}')`}">${isPdf?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-1px;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> ':''} ${p.name}</span>`;
+    // Only show parts that actually have a URL — empty placeholder parts
+    // from admin saves shouldn't appear as clickable chips that go nowhere.
+    // Keep the original index so openPart can find the part unambiguously
+    // even when multiple parts share a default name like "File".
+    const allParts=s.parts||[];
+    const partsWithUrl=allParts.map((p,i)=>({p,i})).filter(x=>x.p.url);
+    const parts=partsWithUrl.map(({p,i})=>{
+      const isPdf=p.url&&(p.url.toLowerCase().includes('.pdf')||p.type==='pdf');
+      const icon=isPdf?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-1px;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> ':'';
+      return `<span class="part-chip chip-tenor" onclick="window.openPart('${s.id}',${i})">${icon}${p.name}</span>`;
     }).join('');
-    // Support multiple video links with fallback to legacy youtubeUrl
-    const vids=s.videoLinks&&s.videoLinks.length?s.videoLinks:
+    // Support multiple video links with fallback to legacy youtubeUrl.
+    // Dedupe by URL — defensive against historical duplicate saves where the
+    // same video link was appended twice during edit flows.
+    const vidsRaw=s.videoLinks&&s.videoLinks.length?s.videoLinks:
       (s.youtubeUrl?[{label:'Watch',url:s.youtubeUrl}]:[]);
-    const vtBtns=vids.map((v,i)=>`<a href="${v.url}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:-1px;"><path d="M8 5v14l11-7z"/></svg>${v.label||(vids.length>1?'Video '+(i+1):'Watch')}</a>`).join('');
+    const seen=new Set();
+    const vids=vidsRaw.filter(v=>{
+      if(!v||!v.url) return false;
+      if(seen.has(v.url)) return false;
+      seen.add(v.url);
+      return true;
+    });
+    const vtBtns=vids.map((v,i)=>`<a href="${v.url}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="text-decoration:none;"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:-1px;"><path d="M8 5v14l11-7z"/></svg>${v.label||(vids.length>1?'Video '+(i+1):'Watch')}</a>`).join('');
     const pdf=s.pdfUrl?`<button onclick="window.openPdfViewer('${s.pdfUrl}','${s.title} — Chord Sheet')" class="btn btn-ghost btn-sm"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-1px;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Chord Sheet</button>`:'';
+    // Counts reflect what's actually clickable on the card.
+    const fileCount=partsWithUrl.length;
     return `<div class="song-card">
       <div class="song-card-top">
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
@@ -3460,7 +3490,7 @@ function renderResourcesGrid(list){
           ${s.lesson?`<div class="song-cat-badge" style="margin-bottom:0;background:rgba(123,192,67,0.15);color:var(--alto);">${s.lesson}</div>`:''}
         </div>
         <div class="song-title">${s.title}</div>
-        <div class="song-meta">${(s.parts||[]).length} file${(s.parts||[]).length!==1?'s':''} ${vids.length?'· '+vids.length+' video'+(vids.length!==1?'s':''):''}</div>
+        <div class="song-meta">${fileCount} file${fileCount!==1?'s':''}${vids.length?' · '+vids.length+' video'+(vids.length!==1?'s':''):''}</div>
       </div>
       <div class="parts-row">${parts||'<span style="color:var(--muted);font-size:12px;">No files yet</span>'}</div>
       <div class="song-card-actions" style="flex-wrap:wrap;gap:6px;">${vtBtns}${pdf}</div>
