@@ -437,6 +437,27 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label class="form-label">Visible to</label>
+        <div id="visibleToOptions" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" value="Basic" style="accent-color:var(--accent);"> Basic
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" value="Intermediate" style="accent-color:var(--accent);"> Intermediate
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" value="Advanced" style="accent-color:var(--accent);"> Advanced
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" value="Others" style="accent-color:var(--accent);"> Others
+          </label>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">
+          Leave all unchecked = only visible to students whose category matches the Category field above.
+        </div>
+      </div>
+
       <!-- Multiple Video Links -->
       <div style="margin-bottom:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
@@ -2487,6 +2508,7 @@ window.adminSaveSong=async(saveType)=>{
   const pdfUrl=document.getElementById('adminSongPDF')?.value.trim()||'';
   console.log('[adminSaveSong] pdfUrl at save time =', JSON.stringify(pdfUrl));
   const lesson=document.getElementById('adminSongLesson').value||'';
+  const visibleTo=[...document.querySelectorAll('#visibleToOptions input:checked')].map(i=>i.value);
   const published=saveType==='draft'?false:(document.getElementById('adminSongPublish')?document.getElementById('adminSongPublish').checked:true);
   if(!title){showToast('Please enter a song title.');return;}
   const btn=document.getElementById('saveSongBtn');
@@ -2511,14 +2533,15 @@ window.adminSaveSong=async(saveType)=>{
     }
     status.textContent='Saving to database...';
     if(S.editingId){
-      await updateDoc(doc(db,'songs',S.editingId),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,published});
+      await updateDoc(doc(db,'songs',S.editingId),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,visibleTo,published});
       showToast(`"${title}" updated!`); cancelEditSong(); await fetchAll();
     } else {
-      await addDoc(collection(db,'songs'),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,published,createdAt:serverTimestamp()});
+      await addDoc(collection(db,'songs'),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,visibleTo,published,createdAt:serverTimestamp()});
       showToast(published?`"${title}" published!`:`"${title}" saved as draft!`); await fetchAll(true);
       document.getElementById('adminSongTitle').value='';
       if(document.getElementById('adminSongPDF')) document.getElementById('adminSongPDF').value='';
       document.getElementById('adminSongLesson').value='';
+      document.querySelectorAll('#visibleToOptions input').forEach(i=>{i.checked=false;});
       S_videoLinks=[{label:'',url:''}]; renderVideoLinks();
       initPartRows();
     }
@@ -2543,6 +2566,9 @@ window.editSong=id=>{
   }
   renderVideoLinks();
   document.getElementById('adminSongCat').value=s.category||'';
+  // Pre-check the Visible-to boxes for this resource.
+  const visibleTo=Array.isArray(s.visibleTo)?s.visibleTo:[];
+  document.querySelectorAll('#visibleToOptions input').forEach(i=>{ i.checked=visibleTo.includes(i.value); });
   const pt=document.getElementById('publishToggle');const pc=document.getElementById('adminSongPublish');if(pt&&pc){const pub=s.published!==false;pc.checked=pub;pub?pt.classList.add('on'):pt.classList.remove('on');pt.style.background=pub?'var(--accent)':'var(--surface2)';pt.querySelector('div').style.left=pub?'23px':'3px';}
   S.partRows=(s.parts||[]).map(p=>({name:p.name,file:null,url:p.url}));
   renderPartRows();
@@ -2559,6 +2585,7 @@ window.cancelEditSong=()=>{
   document.getElementById('adminSongTitle').value='';
   document.getElementById('adminSongLesson').value='';
   const pdfEl=document.getElementById('adminSongPDF'); if(pdfEl) pdfEl.value='';
+  document.querySelectorAll('#visibleToOptions input').forEach(i=>{i.checked=false;});
   document.getElementById('adminSongVideoName').textContent='';
   document.getElementById('adminSongVideo').value='';
   document.getElementById('songFormTitle').textContent='Add Resource';
@@ -3469,9 +3496,18 @@ function renderResourcesPage(){
     return;
   }
   const classGrp=S.student.classGroup||'';
-  // Filter songs by student's category + current cat filter
+  // Filter songs by visibility rules + the current per-tab category filter.
   let list=S.songs.filter(s=>s.published!==false);
-  if(cat) list=list.filter(s=>!s.category||s.category===cat);
+  if(cat){
+    list=list.filter(s=>{
+      // visibleTo (array) takes precedence when set — share resource across categories.
+      if(Array.isArray(s.visibleTo) && s.visibleTo.length>0){
+        return s.visibleTo.includes(cat);
+      }
+      // Legacy fallback: category-only — show to matching category or untagged.
+      return !s.category || s.category===cat;
+    });
+  }
   if(_resCurCat&&_resCurCat!=='all') list=list.filter(s=>s.category===_resCurCat);
   // Sort
   if(S_resSort==='lesson'){
