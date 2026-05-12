@@ -1,70 +1,8 @@
-// ⚠ WIDE-OPEN DEVELOPMENT RULES ⚠
-// TODO: tighten rules before public launch
-//
-// These rules allow any caller — authenticated or not — to read and write
-// every collection. They exist because:
-//   1. Admin in this app is unlocked by a local password gate (pd555), NOT
-//      Firebase Auth — admin therefore has no request.auth uid. Any rule
-//      that required `request.auth != null` would silently break every
-//      admin write (resource saves, student status changes, etc.).
-//   2. New Google sign-up creates the students/{uid} doc from the client
-//      before any further session state exists — restricting writes to
-//      `request.auth.uid == uid` breaks the first-time-sign-in flow if
-//      the doc happens to need to be created from a different context.
-//   3. The Firebase project id and API key are visible in the public
-//      index.html anyway, so any visitor can already call the SDK.
-//
-// Before public launch, tighten by:
-//   - Moving admin auth onto Firebase Auth + a custom claim
-//     (e.g. request.auth.token.admin == true)
-//   - Scoping student doc writes to the owning uid where possible
-//   - Restricting writes on songs / announcements / messages to admin only
-//
-// Deploy:
-//   firebase deploy --only firestore:rules
-// Or paste into:
-//   https://console.firebase.google.com/project/guitar-class-app-ccaf3/firestore/rules
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // ── Public catalog content ─────────────────────────────────────────────
-    match /songs/{id}             { allow read, write: if true; }
-    match /categories/{id}        { allow read, write: if true; }
-    match /lessons/{id}           { allow read, write: if true; }
-    match /announcements/{id}     { allow read, write: if true; }
-    match /challenges/{id}        { allow read, write: if true; }
-    match /seasons/{id}           { allow read, write: if true; }
-    match /facilitators/{id}      { allow read, write: if true; }
-    match /songRequests/{id}      { allow read, write: if true; }
-    match /chordProgressions/{id} { allow read, write: if true; }
-    match /practicePatterns/{id}  { allow read, write: if true; }
-    match /toolSettings/{id}      { allow read, write: if true; }
-
-    // ── Student-owned data ─────────────────────────────────────────────────
-    // Open for now so the Google first-time sign-up flow can create the
-    // students/{uid} doc, and so admin (without Firebase Auth) can update
-    // status / category / completedLessons / dismissedMessages.
-    // TODO: scope writes to request.auth.uid == uid + an admin custom claim.
-    match /students/{uid}         { allow read, write: if true; }
-
-    // ── User submissions + practice tracking ───────────────────────────────
-    match /uploads/{id}           { allow read, write: if true; }
-    match /practiceLogs/{id}      { allow read, write: if true; }
-    match /lessonPlans/{id}       { allow read, write: if true; }
-    match /attendance/{id}        { allow read, write: if true; }
-
-    // ── Ephemeral admin → student broadcasts ───────────────────────────────
-    match /messages/{id}          { allow read, write: if true; }
-
-    // ── App / admin settings (includes GitHub token!) ──────────────────────
-    // ⚠ settings/app.githubToken is currently world-readable under these
-    // rules. Use a fine-grained PAT scoped to this repo only. Rotate if any
-    // browser session is compromised.
-    match /settings/{id}          { allow read, write: if true; }
-
-    // ── Catch-all for anything not enumerated above ────────────────────────
-    match /{document=**}          { allow read, write: if true; }
+    match /{document=**} {
+      allow read, write: if true;
+    }
   }
 }
