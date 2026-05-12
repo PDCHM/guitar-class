@@ -1471,6 +1471,11 @@ async function uploadToCloudinary(file, onProgress) {
     if(file.type.startsWith('image/')) resourceType = 'image';
     else if(file.type.startsWith('video/') || file.type.startsWith('audio/')) resourceType = 'video';
     fd.append('resource_type', resourceType);
+    // Force public, browsable delivery — both are Cloudinary defaults for
+    // unsigned uploads, but stating them explicitly guards against the
+    // preset being changed in Cloudinary Console.
+    fd.append('type', 'upload');
+    fd.append('access_mode', 'public');
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`);
     xhr.upload.onprogress = e => { if(e.lengthComputable && onProgress) onProgress(Math.round(e.loaded/e.total*100)); };
@@ -5652,9 +5657,15 @@ window.handleSongPDF=async(input)=>{
   }
   _pdfUploadPromise=(async()=>{
     try{
-      const url=await uploadToCloudinary(file, pct=>{
+      const rawUrl=await uploadToCloudinary(file, pct=>{
         if(statusEl) statusEl.textContent=`Uploading ${file.name}... ${pct}%`;
       });
+      // Insert the fl_attachment:false delivery flag so Cloudinary serves
+      // the PDF inline rather than as a forced download. Only modifies
+      // Cloudinary raw-upload URLs; other hosts are left as-is.
+      const url = rawUrl.includes('/raw/upload/')
+        ? rawUrl.replace('/raw/upload/', '/raw/upload/fl_attachment:false/')
+        : rawUrl;
       console.log('[handleSongPDF] upload complete, setting adminSongPDF.value =', url);
       if(pdfInput) pdfInput.value=url;
       if(statusEl){
