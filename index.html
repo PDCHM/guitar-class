@@ -469,8 +469,9 @@
       <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
         <div id="sec-songlist" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap;">
           <h3 style="font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;margin:0;">Resource List</h3>
-          <div style="display:flex;gap:6px;align-items:center;">
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
             <button onclick="window.publishAllSongs()" class="btn btn-primary btn-sm">Publish All</button>
+            <button onclick="window.fixAllSongs()" class="btn btn-ghost btn-sm">Fix All Resources</button>
             <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button>
           </div>
         </div>
@@ -2579,6 +2580,8 @@ window.deleteSong=async id=>{
 
 // One-shot helper to flip every song's published flag to true — useful
 // after migrating data with old drafts or missing published field.
+// Only writes the `published` field so existing `visibleTo` arrays are
+// preserved (Firestore updateDoc with merge semantics).
 window.publishAllSongs=async()=>{
   if(!S.songs||!S.songs.length){ showToast('No songs to publish.'); return; }
   if(!confirm(`Publish all ${S.songs.length} resources?`)) return;
@@ -2592,6 +2595,30 @@ window.publishAllSongs=async()=>{
     await fetchAll(true);
   }catch(e){
     showToast(`Published ${done} of ${S.songs.length} before error: ${e.message||'unknown'}`);
+  }
+};
+
+// Migration helper: ensure every song has both `published: true` and a
+// non-empty `visibleTo` array. Songs missing visibleTo get it populated
+// from their `category` (so they're visible to students in that category).
+// Songs that already have a visibleTo array are left unchanged so admin's
+// per-resource sharing decisions aren't clobbered.
+window.fixAllSongs=async()=>{
+  if(!S.songs||!S.songs.length){ showToast('No songs to fix.'); return; }
+  if(!confirm(`Fix all ${S.songs.length} resources? Will set published:true and ensure visibleTo is set from category where missing.`)) return;
+  let done=0;
+  try{
+    for(const s of S.songs){
+      const vt = Array.isArray(s.visibleTo) && s.visibleTo.length
+        ? s.visibleTo
+        : [s.category].filter(Boolean);
+      await updateDoc(doc(db,'songs',s.id),{published:true, visibleTo:vt});
+      done++;
+    }
+    showToast(`Fixed ${done} resources.`);
+    await fetchAll(true);
+  }catch(e){
+    showToast(`Fixed ${done} of ${S.songs.length} before error: ${e.message||'unknown'}`);
   }
 };
 
@@ -3509,10 +3536,21 @@ function renderResourcesPage(){
   if(!S.student) return;
   const cat=S.student.category||'';
   const classGrp=S.student.classGroup||'';
-  // Show every published resource to every logged-in student. Admins gate
-  // visibility per-resource using the publish toggle on the Add Resource
-  // form. Category is now display-only (badge on each card + browse pill).
-  let list=S.songs.filter(s=>s.published!==false);
+  // Visibility filter:
+  //   - Hide explicit drafts
+  //   - Student with no category set → show everything (admin still in setup)
+  //   - Resource with visibleTo array → must include student's category
+  //   - Resource without visibleTo → falls back to direct category match
+  const studentCat=(S.student?.category||'').trim();
+  let list=S.songs.filter(s=>{
+    if(s.published===false) return false;
+    if(!studentCat) return true;
+    const vt=s.visibleTo;
+    if(Array.isArray(vt) && vt.length>0){
+      return vt.map(v=>(v||'').trim()).includes(studentCat);
+    }
+    return (s.category||'').trim()===studentCat;
+  });
   // Per-tab pill filter is a browsing convenience: clicking a category pill
   // narrows the visible list to resources tagged with that category.
   if(_resCurCat&&_resCurCat!=='all'){
