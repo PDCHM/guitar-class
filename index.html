@@ -2234,10 +2234,17 @@ window.openPart=(songId,partRef)=>{
   const p=typeof partRef==='number' ? parts[partRef] : parts.find(x=>x.name===partRef);
   if(!p){ showToast('Part not found.'); return; }
   if(!p.url){ showToast('No file attached to this part yet.'); return; }
+  // PDFs and Cloudinary raw uploads (which may have no .pdf extension on
+  // the URL) get opened in a new browser tab — the native PDF viewer
+  // handles rendering. Everything else uses the inline part modal which
+  // knows how to play audio / video / show images.
   const cleanUrl=p.url.split('?')[0].toLowerCase();
-  const isPdf=p.type==='pdf' || cleanUrl.endsWith('.pdf') || cleanUrl.includes('.pdf');
-  if(isPdf){
-    window.openPdfViewer(p.url, `${s.title} — ${p.name}`);
+  const isPdfLike=p.type==='pdf'
+    || cleanUrl.endsWith('.pdf')
+    || cleanUrl.includes('.pdf')
+    || cleanUrl.includes('/raw/upload/');
+  if(isPdfLike){
+    window.open(p.url, '_blank', 'noopener,noreferrer');
   } else {
     window.openPartModal(songId, p.name, p.url);
   }
