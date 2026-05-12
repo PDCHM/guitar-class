@@ -2509,6 +2509,8 @@ window.adminSaveSong=async(saveType)=>{
   console.log('[adminSaveSong] pdfUrl at save time =', JSON.stringify(pdfUrl));
   const lesson=document.getElementById('adminSongLesson').value||'';
   const visibleTo=[...document.querySelectorAll('#visibleToOptions input:checked')].map(i=>i.value);
+  // TEMP debug — remove once verified that visibleTo is being saved correctly.
+  console.log('[adminSaveSong] visibleTo =', visibleTo);
   const published=saveType==='draft'?false:(document.getElementById('adminSongPublish')?document.getElementById('adminSongPublish').checked:true);
   if(!title){showToast('Please enter a song title.');return;}
   const btn=document.getElementById('saveSongBtn');
@@ -3496,18 +3498,20 @@ function renderResourcesPage(){
     return;
   }
   const classGrp=S.student.classGroup||'';
-  // Filter songs by visibility rules + the current per-tab category filter.
-  let list=S.songs.filter(s=>s.published!==false);
-  if(cat){
-    list=list.filter(s=>{
-      // visibleTo (array) takes precedence when set — share resource across categories.
-      if(Array.isArray(s.visibleTo) && s.visibleTo.length>0){
-        return s.visibleTo.includes(cat);
-      }
-      // Legacy fallback: category-only — show to matching category or untagged.
-      return !s.category || s.category===cat;
-    });
-  }
+  // Visibility filter — single pass over S.songs.
+  //   1. Hide explicit drafts (published === false). undefined => published.
+  //   2. Student with no category sees everything (admin still in setup).
+  //   3. visibleTo array, when set, is the source of truth → share across cats.
+  //   4. Otherwise require strict category match (no more untagged-shown-to-all).
+  let list=S.songs.filter(s=>{
+    if(s.published===false) return false;
+    if(!cat) return true;
+    if(Array.isArray(s.visibleTo) && s.visibleTo.length>0){
+      return s.visibleTo.includes(cat);
+    }
+    return s.category===cat;
+  });
+  // Per-tab pill filter — only when student picks a specific category pill.
   if(_resCurCat&&_resCurCat!=='all') list=list.filter(s=>s.category===_resCurCat);
   // Sort
   if(S_resSort==='lesson'){
