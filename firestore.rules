@@ -1,57 +1,29 @@
+// ⚠ TEMPORARY DEBUG RULES — WIDE OPEN ⚠
+//
+// These rules allow ANY caller (authenticated or not) to read and write ANY
+// document in the database. They exist temporarily to diagnose a write that
+// was failing silently — specifically, songs/{id}.visibleTo updates from the
+// admin form when admin isn't Firebase-authenticated.
+//
+// Revert to least-privilege rules before exposing this Firebase project to
+// untrusted traffic. The Firebase API key and project id are visible in the
+// public HTML, so any visitor can call Firestore directly under these rules.
+//
+// To deploy this file:
+//   firebase deploy --only firestore:rules
+//
+// To restore safer behaviour, ask Claude to regenerate the rules with the
+// least-privilege template that lived in this file before.
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // ─── students/{uid} ──────────────────────────────────────────────────────
-    // Only the owner can read/write their own profile. Self-registration is
-    // permitted because request.auth.uid == uid at create time.
-    //
-    // ⚠ The admin user is NOT Firebase-authenticated in this app — admin is
-    // unlocked client-side via a local password gate. That means admin-side
-    // student updates (status:approved, category, completedLessons, etc.) will
-    // be REJECTED by these rules. To restore admin write access either:
-    //   (a) sign the admin in via Firebase Auth + use custom claims, or
-    //   (b) move admin actions to a Cloud Function with the admin SDK.
-    match /students/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+    match /songs/{songId} {
+      allow read: if true;
+      allow write: if true;
     }
-
-    // ─── uploads/{id} ────────────────────────────────────────────────────────
-    // Any authenticated user can read the class feed. Writes are open to any
-    // authenticated user because there is no server-side admin role to perform
-    // moderation; tighten once custom claims are in place.
-    match /uploads/{id} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+    match /{document=**} {
+      allow read, write: if true;
     }
-
-    // ─── practiceLogs/{id} ──────────────────────────────────────────────────
-    // Strictly per-user — students see and modify only their own practice log.
-    match /practiceLogs/{id} {
-      allow read, list: if request.auth != null
-        && resource.data.studentId == request.auth.uid;
-      allow create: if request.auth != null
-        && request.resource.data.studentId == request.auth.uid;
-      allow update, delete: if request.auth != null
-        && resource.data.studentId == request.auth.uid;
-    }
-
-    // ─── Shared catalog data ────────────────────────────────────────────────
-    // No server-side admin SDK available, so writes are open to any
-    // authenticated client. Tighten these once admin auth is in place.
-    match /songs/{id}             { allow read, write: if request.auth != null; }
-    match /categories/{id}        { allow read, write: if request.auth != null; }
-    match /lessons/{id}           { allow read, write: if request.auth != null; }
-    match /announcements/{id}     { allow read, write: if request.auth != null; }
-    match /challenges/{id}        { allow read, write: if request.auth != null; }
-    match /seasons/{id}           { allow read, write: if request.auth != null; }
-    match /facilitators/{id}      { allow read, write: if request.auth != null; }
-    match /settings/{id}          { allow read, write: if request.auth != null; }
-    match /chordProgressions/{id} { allow read, write: if request.auth != null; }
-    match /practicePatterns/{id}  { allow read, write: if request.auth != null; }
-    match /toolSettings/{id}      { allow read, write: if request.auth != null; }
-    match /lessonPlans/{id}       { allow read, write: if request.auth != null; }
-    match /attendance/{id}        { allow read, write: if request.auth != null; }
-    match /songRequests/{id}      { allow read, write: if request.auth != null; }
   }
 }

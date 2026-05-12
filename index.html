@@ -2558,10 +2558,22 @@ window.adminSaveSong=async(saveType)=>{
     }
     status.textContent='Saving to database...';
     if(S.editingId){
-      await updateDoc(doc(db,'songs',S.editingId),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,visibleTo,published});
+      try {
+        await updateDoc(doc(db,'songs',S.editingId),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,visibleTo,published});
+        alert('Firestore UPDATE success\nid: ' + S.editingId + '\nvisibleTo written: ' + JSON.stringify(visibleTo));
+      } catch(e){
+        alert('Firestore UPDATE FAILED\ncode: ' + (e.code||'(none)') + '\nmessage: ' + (e.message||'unknown'));
+        throw e;
+      }
       showToast(`"${title}" updated!`); cancelEditSong(); await fetchAll();
     } else {
-      await addDoc(collection(db,'songs'),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,visibleTo,published,createdAt:serverTimestamp()});
+      try {
+        await addDoc(collection(db,'songs'),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,visibleTo,published,createdAt:serverTimestamp()});
+        alert('Firestore CREATE success\nvisibleTo written: ' + JSON.stringify(visibleTo));
+      } catch(e){
+        alert('Firestore CREATE FAILED\ncode: ' + (e.code||'(none)') + '\nmessage: ' + (e.message||'unknown'));
+        throw e;
+      }
       showToast(published?`"${title}" published!`:`"${title}" saved as draft!`); await fetchAll(true);
       document.getElementById('adminSongTitle').value='';
       if(document.getElementById('adminSongPDF')) document.getElementById('adminSongPDF').value='';
