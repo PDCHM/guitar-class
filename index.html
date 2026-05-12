@@ -3970,16 +3970,40 @@ window.drawFretboard=()=>{
     D:{desc:'The D shape is rooted on the D string at the barre fret. Used for upper-register voicings.',windowSpan:3,position:(r)=>(r-2+12)%12},
   };
 
+  // ── CAGED active-shape resolution ─────────────────────────────────────────
+  // Position selector drives the active shape when CAGED is in play:
+  //   "all"  → full neck, no window dimming (Scale/Variant decides the
+  //            description shape but no fret restriction is applied)
+  //   "0..4" → Box 1..5 maps to E / D / C / A / G respectively. This is the
+  //            order shapes are encountered as you move up the neck from
+  //            the root note on the low E string.
+  const CAGED_BOX_TO_SHAPE=['E','D','C','A','G'];
+  let cagedActiveShape=null;
+  let cagedShowAll=false;
+  if(isCaged){
+    if(posIdx==='all'){
+      cagedActiveShape=scale.caged;
+      cagedShowAll=true;
+    } else {
+      cagedActiveShape=CAGED_BOX_TO_SHAPE[parseInt(posIdx)]||scale.caged;
+    }
+  }
+
   // Show/hide CAGED info
   const cagedInfo=document.getElementById('caged-info');
   const cagedName=document.getElementById('caged-shape-name');
   const cagedDesc=document.getElementById('caged-shape-desc');
   if(isCaged&&cagedInfo){
-    const shape=scale.caged;
-    const shapeData=CAGED_SHAPES[shape];
+    const shapeData=CAGED_SHAPES[cagedActiveShape];
     cagedInfo.style.display='block';
-    cagedName.textContent=shape+' Shape';
-    cagedDesc.textContent=shapeData.desc;
+    if(cagedShowAll){
+      cagedName.textContent='All Positions';
+      cagedDesc.textContent='Showing all CAGED chord tones across the fretboard. Switch to Box 1–5 to focus on one shape.';
+    } else {
+      const boxNum=CAGED_BOX_TO_SHAPE.indexOf(cagedActiveShape)+1;
+      cagedName.textContent=`${cagedActiveShape} Shape (Box ${boxNum})`;
+      cagedDesc.textContent=shapeData?shapeData.desc:'';
+    }
   } else if(cagedInfo){
     cagedInfo.style.display='none';
   }
@@ -3998,13 +4022,15 @@ window.drawFretboard=()=>{
   // Determine fret window
   let fretStart=1, fretEnd=16;
   if(isCaged){
-    const shape=scale.caged;
-    const data=CAGED_SHAPES[shape];
-    if(data){
-      const pos=data.position(root);
-      fretStart=pos;
-      fretEnd=pos+data.windowSpan;
+    if(!cagedShowAll){
+      const data=CAGED_SHAPES[cagedActiveShape];
+      if(data){
+        const pos=data.position(root);
+        fretStart=pos;
+        fretEnd=pos+data.windowSpan;
+      }
     }
+    // else: cagedShowAll keeps fretStart=1, fretEnd=16 (no window restriction)
   } else if(posIdx!=='all'){
     const b=boxes[+posIdx];
     if(b){fretStart=b.start;fretEnd=b.end;}
@@ -4044,9 +4070,9 @@ window.drawFretboard=()=>{
   }
   ctx.fillStyle=isDark?'#888':'#c8b090'; ctx.fillRect(pad.left-3,pad.top,5,fbH);
 
-  // Position / CAGED window highlight
-  const hlStart=isCaged?fretStart:(posIdx!=='all'?boxes[+posIdx]?.start:null);
-  const hlEnd=isCaged?fretEnd:(posIdx!=='all'?boxes[+posIdx]?.end:null);
+  // Position / CAGED window highlight (skipped when showing all positions)
+  const hlStart=(isCaged&&!cagedShowAll)?fretStart:(!isCaged&&posIdx!=='all'?boxes[+posIdx]?.start:null);
+  const hlEnd=(isCaged&&!cagedShowAll)?fretEnd:(!isCaged&&posIdx!=='all'?boxes[+posIdx]?.end:null);
   if(hlStart!=null){
     const x1=pad.left+(hlStart-0.5)*fs, x2=pad.left+(hlEnd+0.5)*fs;
     ctx.fillStyle=isDark?'rgba(238,64,53,0.12)':'rgba(238,64,53,0.07)';
