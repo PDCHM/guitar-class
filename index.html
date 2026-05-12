@@ -428,13 +428,13 @@
         <div class="form-group">
           <label class="form-label">Chord Sheet / PDF</label>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <input class="form-input" id="adminSongPDF" type="text" placeholder="PDF URL or upload below" style="flex:1;min-width:180px;margin-bottom:0;">
+            <input class="form-input" id="adminSongPDF" type="text" placeholder="PDF URL — use GitHub hosted PDFs for best results: pdchm.github.io/guitar-class/pdfs/filename.pdf" style="flex:1;min-width:180px;margin-bottom:0;">
             <label class="part-upload-btn" style="cursor:pointer;white-space:nowrap;">
               Upload PDF
               <input type="file" id="adminSongPDFFile" accept=".pdf,application/pdf" style="display:none" onchange="window.handleSongPDF(this)">
             </label>
           </div>
-          <div id="pdfUploadStatus" style="font-size:11px;color:var(--muted);margin-top:4px;display:none;"></div>
+          <div id="pdfUploadStatus" style="font-size:11px;color:var(--muted);margin-top:4px;">Tip: For reliable PDF viewing, upload your PDF to the /pdfs folder in your GitHub repo and paste the URL instead.</div>
         </div>
       </div>
 
@@ -5659,7 +5659,15 @@ window.handleSongPDF=async(input)=>{
       if(pdfInput) pdfInput.value=url;
       if(statusEl){
         statusEl.textContent=`✓ PDF uploaded (${file.name})`;
-        setTimeout(()=>{ if(statusEl) statusEl.style.display='none'; },2500);
+        // After the success message, restore the hosting tip rather than
+        // hiding the slot — admins should keep seeing the GitHub-hosted PDF
+        // recommendation even after uploading via Cloudinary.
+        setTimeout(()=>{
+          if(statusEl){
+            statusEl.textContent='Tip: For reliable PDF viewing, upload your PDF to the /pdfs folder in your GitHub repo and paste the URL instead.';
+            statusEl.style.color='';
+          }
+        },2500);
       }
       showToast('PDF uploaded — URL filled in.');
       input.value='';
