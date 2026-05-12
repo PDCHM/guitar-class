@@ -1134,9 +1134,17 @@
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:16px;">
         <textarea id="classFeedPostText" rows="2" class="form-input" placeholder="Share something with your class..." style="resize:vertical;margin-bottom:8px;"></textarea>
         <input id="classFeedPostLink" type="url" class="form-input" placeholder="Optional YouTube or video link" style="margin-bottom:10px;">
-        <div style="display:flex;justify-content:flex-end;">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            Upload video
+            <input type="file" id="classFeedPostVideo" accept="video/*" style="display:none;" onchange="window.handlePostVideo(this)">
+          </label>
+          <span id="classFeedPostVideoName" style="font-size:11px;color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
           <button class="btn btn-primary btn-sm" id="classFeedPostBtn" onclick="window.submitClassFeedPost()">Post</button>
         </div>
+        <div class="progress-bar" id="classFeedPostProgress" style="margin-top:8px;"><div class="progress-fill" id="classFeedPostFill"></div></div>
+        <div id="classFeedPostStatus" style="font-size:11px;color:var(--muted);margin-top:4px;display:none;"></div>
       </div>
       <div id="learnerAllSubmissions"><div class="loading"><div class="spinner"></div> Loading...</div></div>
     </div>
@@ -3542,9 +3550,10 @@ function renderLearnerAllSubmissions(){
     const meta=u.type==='post'?dateStr:`${u.lesson||u.part||''}${u.lesson||u.part?' · ':''}${dateStr}`;
     let body='';
     if(u.type==='post'){
-      const textHtml=u.text?`<div style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;margin-bottom:${u.linkUrl?'8px':'0'};">${u.text}</div>`:'';
+      const textHtml=u.text?`<div style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;margin-bottom:8px;">${u.text}</div>`:'';
+      const videoHtml=u.videoUrl?`<video controls playsinline style="width:100%;max-height:260px;background:#000;border-radius:8px;margin-bottom:8px;display:block;" src="${u.videoUrl}"></video>`:'';
       const linkHtml=u.linkUrl?`<a href="${u.linkUrl}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>${u.linkUrl}</a>`:'';
-      body=textHtml+linkHtml;
+      body=textHtml+videoHtml+linkHtml;
     } else {
       body=u.url?`<a href="${u.url}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Play</a>`:'';
     }
@@ -3720,22 +3729,48 @@ window.handleLearnerFile=(input)=>{
   }
 };
 
-// Text/link post from the Class Feed input. Lives in the same `uploads`
-// collection as video submissions but tagged type:'post' so renderers and
-// stats can distinguish them.
+// Text / link / video post from the Class Feed input. Stored in `uploads`
+// alongside video submissions but tagged type:'post' so renderers, badge
+// counts, and admin Recordings list can distinguish them.
+let S_pendingPostVideo=null;
+
+window.handlePostVideo=(input)=>{
+  const file=input.files[0]; if(!file) return;
+  S_pendingPostVideo=file;
+  const nameEl=document.getElementById('classFeedPostVideoName');
+  if(nameEl) nameEl.textContent=file.name;
+};
+
 window.submitClassFeedPost=async()=>{
   if(!S.student){ showToast('Please sign in first.'); return; }
   const textEl=document.getElementById('classFeedPostText');
   const linkEl=document.getElementById('classFeedPostLink');
+  const fileEl=document.getElementById('classFeedPostVideo');
+  const nameEl=document.getElementById('classFeedPostVideoName');
+  const bar=document.getElementById('classFeedPostProgress');
+  const fill=document.getElementById('classFeedPostFill');
+  const status=document.getElementById('classFeedPostStatus');
   const text=(textEl?.value||'').trim();
   const linkUrl=(linkEl?.value||'').trim();
-  if(!text && !linkUrl){ showToast('Type something or paste a link first.'); return; }
+  if(!text && !linkUrl && !S_pendingPostVideo){
+    showToast('Type something, paste a link, or attach a video first.');
+    return;
+  }
   const btn=document.getElementById('classFeedPostBtn');
   if(btn){ btn.disabled=true; btn.textContent='Posting…'; }
+  let videoUrl='';
   try{
+    if(S_pendingPostVideo){
+      if(bar) bar.style.display='block';
+      if(status){ status.style.display='block'; status.textContent='Uploading video…'; }
+      videoUrl=await uploadToCloudinary(S_pendingPostVideo, pct=>{
+        if(fill) fill.style.width=pct+'%';
+        if(status) status.textContent=`Uploading… ${pct}%`;
+      });
+    }
     await addDoc(collection(db,'uploads'),{
       type:'post',
-      text, linkUrl,
+      text, linkUrl, videoUrl,
       submittedBy:S.student.name,
       studentId:S.student.id,
       studentName:S.student.name,
@@ -3746,12 +3781,18 @@ window.submitClassFeedPost=async()=>{
     });
     if(textEl) textEl.value='';
     if(linkEl) linkEl.value='';
+    if(fileEl) fileEl.value='';
+    if(nameEl) nameEl.textContent='';
+    S_pendingPostVideo=null;
     showToast('Posted to Class Feed.');
     // Realtime listener will refresh both feeds; no manual call needed.
   }catch(e){
     console.error('submitClassFeedPost failed:', e);
     showToast('Could not post: '+(e.message||'unknown error'));
   }
+  if(bar) bar.style.display='none';
+  if(fill) fill.style.width='0%';
+  if(status){ status.style.display='none'; status.textContent=''; }
   if(btn){ btn.disabled=false; btn.textContent='Post'; }
 };
 
@@ -4914,10 +4955,11 @@ function renderCommunityFeed(){
           <div style="font-size:11px;color:var(--muted);">${u.lesson||u.part||''} · ${u.submittedAt?new Date(u.submittedAt.seconds*1000).toLocaleDateString('en-SG',{day:'numeric',month:'short'}):u.createdAt?new Date(u.createdAt.seconds*1000).toLocaleDateString('en-SG',{day:'numeric',month:'short'}):''}</div>
         </div>
       </div>
-      <!-- Body: text+link for posts, video for submissions -->
+      <!-- Body: text + optional video + optional link for posts, video for submissions -->
       ${u.type==='post'
         ? (u.text?`<div style="padding:0 16px 8px;font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;">${u.text}</div>`:'')
-          + (u.linkUrl?`<div style="padding:0 16px 10px;"><a href="${u.linkUrl}" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent2);text-decoration:none;word-break:break-all;display:inline-flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>${u.linkUrl}</a></div>`:'')
+          + (u.videoUrl?`<video controls playsinline style="width:100%;max-height:260px;background:#000;display:block;" src="${u.videoUrl}"></video>`:'')
+          + (u.linkUrl?`<div style="padding:8px 16px 10px;"><a href="${u.linkUrl}" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent2);text-decoration:none;word-break:break-all;display:inline-flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>${u.linkUrl}</a></div>`:'')
         : (u.url?`<video controls playsinline style="width:100%;max-height:260px;background:#000;display:block;" src="${u.url}"></video>`:'')
           + (u.note?`<div style="padding:8px 16px;font-size:12px;color:var(--muted);font-style:italic;">"${u.note}"</div>`:'')}
       <!-- Actions bar -->
