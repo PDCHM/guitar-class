@@ -3542,22 +3542,33 @@ function renderResourcesPage(){
     return [];
   };
   const catN=norm(cat);
+  // Permissive visibility: show a resource to a student if ANY of:
+  //   - visibleTo includes their category
+  //   - visibleTo includes "All"
+  //   - the resource's own category matches the student's
+  // (The fourth condition in the spec — empty visibleTo AND category match —
+  // is already covered by the third bullet.)
   let list=S.songs.filter(s=>{
     if(s.published===false) return false;
     if(!catN) return true;
     const vt=visibleToArr(s);
-    if(vt.length>0) return vt.some(v=>norm(v)===catN);
-    return norm(s.category)===catN;
+    if(vt.some(v=>norm(v)===catN)) return true;
+    if(vt.some(v=>norm(v)==='all')) return true;
+    if(norm(s.category)===catN) return true;
+    return false;
   });
-  // Per-tab pill filter — also honours visibleTo and is case-tolerant, so a
-  // shared resource appears under the viewing student's own-category pill,
-  // not just under the pill matching the resource's literal category field.
+  // Per-tab pill filter — also honours visibleTo (including "All") and is
+  // case-tolerant, so a shared resource appears under the viewing student's
+  // own-category pill, not just under the pill matching the resource's
+  // literal category field.
   if(_resCurCat&&_resCurCat!=='all'){
     const pillN=norm(_resCurCat);
     list=list.filter(s=>{
       if(norm(s.category)===pillN) return true;
       const vt=visibleToArr(s);
-      return vt.some(v=>norm(v)===pillN);
+      if(vt.some(v=>norm(v)===pillN)) return true;
+      if(vt.some(v=>norm(v)==='all')) return true;
+      return false;
     });
   }
   // Sort
