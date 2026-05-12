@@ -2516,6 +2516,8 @@ window.adminSaveSong=async(saveType)=>{
   console.log('[adminSaveSong] pdfUrl at save time =', JSON.stringify(pdfUrl));
   const lesson=document.getElementById('adminSongLesson').value||'';
   const visibleTo=[...document.querySelectorAll('#visibleToOptions input:checked')].map(i=>i.value);
+  // TEMP debug alert — remove once visibleTo flow is verified.
+  alert('Saving visibleTo: ' + JSON.stringify(visibleTo));
   const published=saveType==='draft'?false:(document.getElementById('adminSongPublish')?document.getElementById('adminSongPublish').checked:true);
   if(!title){showToast('Please enter a song title.');return;}
   const btn=document.getElementById('saveSongBtn');
@@ -3520,6 +3522,14 @@ function renderResourcesPage(){
     return;
   }
   const classGrp=S.student.classGroup||'';
+  // TEMP debug alert — fires once per page session for the first song in
+  // S.songs so admin can see live what visibleTo looks like and what the
+  // student category resolves to. Remove once verified.
+  if(!window._vtFilterAlerted && S.songs.length>0){
+    window._vtFilterAlerted=true;
+    const s=S.songs[0];
+    alert('Filter check: ' + (s.title||'(no title)') + ' visibleTo=' + JSON.stringify(s.visibleTo) + ' studentCat=' + JSON.stringify(cat));
+  }
   // Visibility filter — defensive against every data shape `visibleTo` might
   // arrive in: Array (normal), comma-separated string (legacy/edge), null,
   // undefined, missing field. Comparisons are case- and whitespace-tolerant
