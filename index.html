@@ -2518,7 +2518,7 @@ window.adminSaveSong=async(saveType)=>{
     status.textContent='Saving to database...';
     if(S.editingId){
       await updateDoc(doc(db,'songs',S.editingId),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,published});
-      showToast(`"${title}" updated!`); cancelEditSong(); await fetchAll();
+      showToast(`"${title}" updated!`); cancelEditSong(); await fetchAll(true);
     } else {
       await addDoc(collection(db,'songs'),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,published,createdAt:serverTimestamp()});
       showToast(published?`"${title}" published!`:`"${title}" saved as draft!`); await fetchAll(true);
