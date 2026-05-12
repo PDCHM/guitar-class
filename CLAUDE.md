@@ -47,6 +47,7 @@ Admin can also be unlocked by tapping the nav logo 5× or typing `admin` on the 
 
 - **`firestore.rules` is in the repo but NOT safe to deploy as-is.** The rules restrict `students/{uid}` writes to the owning user, but admin actions (approve, set category, mark lessons complete) run without Firebase Auth — they'd be rejected. Deploy only after moving admin to Firebase Auth + custom claims, or to a Cloud Function backend.
 - Admin password (`pd555`) is in client JS — anyone viewing source can read it. Defensible only because the site's user base is trusted; treat as low-security gate.
+- **GitHub PAT lives in Firestore `settings/app.githubToken`** so the PDF uploader can commit to `/pdfs/` via the GitHub Contents API. Any authenticated reader of `settings/app` can fetch it. Use a **fine-grained PAT** scoped to *this repo only*, with **Contents: Read & Write** and nothing else. Rotate if anyone with admin-gate access leaves the trust circle.
 - `signInWithPopup` can be flaky on mobile Safari / iOS Chrome. No `signInWithRedirect` fallback is implemented.
 - Migrating existing students whose `completedLessons` use old `"Lesson 1"`-style strings to the new category-prefixed format hasn't been done; their old completions won't display until re-ticked.
 - BADGE_DEFS icons, mood selector emoji, leaderboard medals (🥇🥈🥉), and toast strings still use emoji intentionally — per the icon-replacement spec, only UI/button icons were converted to inline SVG.

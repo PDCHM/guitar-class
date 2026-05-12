@@ -731,6 +731,13 @@
       <label class="form-label">Teacher name</label>
       <input class="form-input" id="settingTeacherName" placeholder="e.g. Peter">
     </div>
+    <div class="form-group">
+      <label class="form-label">GitHub Personal Access Token (for PDF upload)</label>
+      <input class="form-input" id="settingGithubToken" type="password" placeholder="ghp_... or github_pat_..." autocomplete="off">
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;">
+        Used to commit uploaded PDFs to the repo's <code>/pdfs/</code> folder. Use a <strong>fine-grained PAT</strong> scoped to this repo only, with <strong>Contents: Read &amp; Write</strong> — nothing else. Token is stored in Firestore and readable by anyone who can read <code>settings/app</code>. Rotate it if compromised.
+      </div>
+    </div>
     <button class="btn btn-primary" onclick="window.saveAppSettings()">Save Settings</button>
   </div>
 
@@ -2051,8 +2058,10 @@ async function loadAppSettings(){
   try{
     const snap=await getDoc(doc(db,'settings','app'));
     if(snap.exists()){
-      const name=snap.data().className||'Guitar Class';
-      const teacher=snap.data().teacherName||'';
+      const d=snap.data();
+      const name=d.className||'Guitar Class';
+      const teacher=d.teacherName||'';
+      S._githubToken=d.githubToken||'';
       const full=teacher?`${name} — ${teacher}`:name;
       document.title=full;
       const logo=document.getElementById('navLogoName');
@@ -5635,15 +5644,46 @@ window.pdfNextPage=()=>{
   renderPdfPage(_pdfCurrentPage+1);
 };
 
-// Admin: upload PDF to Cloudinary.
-// Uses the shared uploadToCloudinary helper (same one used for videos and
-// other media) — auto-detects resource_type=raw for application/pdf and
-// reports real upload progress via XHR.
+// Admin: upload PDF directly to the GitHub repo via the Contents API.
+// The file lands in /pdfs/<safeName> on main; GitHub Pages serves it at
+// https://pdchm.github.io/guitar-class/pdfs/<safeName> after the next
+// Pages build finishes (~30–60s).
 //
 // _pdfUploadPromise tracks an in-flight upload so adminSaveSong can await
-// it before reading the input value. Without this, clicking Save while a
-// large PDF is still uploading caused the save to write pdfUrl:'' before
-// the upload finished and populated the input — Edit then showed empty.
+// it before reading the input value (same race-guard as before).
+const GITHUB_PDF_OWNER='PDCHM';
+const GITHUB_PDF_REPO='guitar-class';
+const GITHUB_PDF_BRANCH='main';
+const GITHUB_PDF_FOLDER='pdfs';
+const GITHUB_PAGES_BASE='https://pdchm.github.io/guitar-class/pdfs/';
+
+// Sanitise a filename for a repo path: lowercase, strip diacritics, replace
+// runs of non [A-Za-z0-9.-] with '-', trim leading/trailing dashes.
+function safeFilename(name){
+  const lastDot=name.lastIndexOf('.');
+  const stem=lastDot>0?name.slice(0,lastDot):name;
+  const ext=lastDot>0?name.slice(lastDot):'';
+  const cleaned=stem
+    .normalize('NFKD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^A-Za-z0-9._-]+/g,'-')
+    .replace(/^-+|-+$/g,'')
+    .toLowerCase()||'file';
+  return cleaned+ext.toLowerCase();
+}
+
+// Base64-encode a File. Chunked to keep big PDFs out of one giant
+// String.fromCharCode call.
+async function fileToBase64(file){
+  const buffer=await file.arrayBuffer();
+  const bytes=new Uint8Array(buffer);
+  let binary='';
+  const chunk=0x8000;
+  for(let i=0;i<bytes.length;i+=chunk){
+    binary+=String.fromCharCode.apply(null, bytes.subarray(i,i+chunk));
+  }
+  return btoa(binary);
+}
+
 let _pdfUploadPromise=null;
 window.handleSongPDF=async(input)=>{
   const file=input.files[0];
@@ -5652,37 +5692,75 @@ window.handleSongPDF=async(input)=>{
   const pdfInput=document.getElementById('adminSongPDF');
   if(statusEl){
     statusEl.style.display='block';
-    statusEl.textContent=`Uploading ${file.name}...`;
+    statusEl.textContent=`Preparing ${file.name}…`;
     statusEl.style.color='';
   }
   _pdfUploadPromise=(async()=>{
     try{
-      const rawUrl=await uploadToCloudinary(file, pct=>{
-        if(statusEl) statusEl.textContent=`Uploading ${file.name}... ${pct}%`;
-      });
-      // Insert the fl_attachment:false delivery flag so Cloudinary serves
-      // the PDF inline rather than as a forced download. Only modifies
-      // Cloudinary raw-upload URLs; other hosts are left as-is.
-      const url = rawUrl.includes('/raw/upload/')
-        ? rawUrl.replace('/raw/upload/', '/raw/upload/fl_attachment:false/')
-        : rawUrl;
-      console.log('[handleSongPDF] upload complete, setting adminSongPDF.value =', url);
-      if(pdfInput) pdfInput.value=url;
+      const token=S._githubToken||'';
+      if(!token){
+        throw new Error('GitHub token not configured. Open Admin → App Settings to add one.');
+      }
+      const safeName=safeFilename(file.name);
+      const path=`${GITHUB_PDF_FOLDER}/${safeName}`;
+      const apiBase=`https://api.github.com/repos/${GITHUB_PDF_OWNER}/${GITHUB_PDF_REPO}/contents/${path}`;
+      const headers={
+        Authorization:`token ${token}`,
+        Accept:'application/vnd.github+json',
+        'X-GitHub-Api-Version':'2022-11-28'
+      };
+
+      // Step 1: see if a file already exists at this path so we can include
+      // its SHA on the PUT (otherwise GitHub returns 422 on overwrite).
+      if(statusEl) statusEl.textContent=`Checking ${safeName}…`;
+      let existingSha=null;
+      const headRes=await fetch(`${apiBase}?ref=${GITHUB_PDF_BRANCH}`,{headers});
+      if(headRes.status===200){
+        const j=await headRes.json();
+        existingSha=j.sha||null;
+      } else if(headRes.status!==404){
+        const errText=await headRes.text();
+        throw new Error(`GitHub check failed (HTTP ${headRes.status}): ${errText.slice(0,160)}`);
+      }
+
+      // Step 2: read the file and base64-encode (synchronous on big files;
+      // status text gives the admin some sign of life).
+      if(statusEl) statusEl.textContent=`Encoding ${safeName}…`;
+      const content=await fileToBase64(file);
+
+      // Step 3: PUT the file.
+      if(statusEl) statusEl.textContent=`Uploading ${safeName} to GitHub…`;
+      const body={
+        message: existingSha?`Update PDF ${safeName}`:`Add PDF ${safeName}`,
+        content,
+        branch: GITHUB_PDF_BRANCH
+      };
+      if(existingSha) body.sha=existingSha;
+      const putRes=await fetch(apiBase,{method:'PUT',headers,body:JSON.stringify(body)});
+      if(!putRes.ok){
+        const errText=await putRes.text();
+        let msg=`GitHub upload failed (HTTP ${putRes.status})`;
+        try{ const j=JSON.parse(errText); if(j.message) msg+=`: ${j.message}`; }catch(e){ msg+=`: ${errText.slice(0,160)}`; }
+        if(putRes.status===401) msg='GitHub rejected the token (401). Check it in App Settings.';
+        if(putRes.status===403) msg='Token lacks Contents:Write permission on this repo (403).';
+        throw new Error(msg);
+      }
+
+      const finalUrl=GITHUB_PAGES_BASE+safeName;
+      console.log('[handleSongPDF] commit ok, setting adminSongPDF.value =', finalUrl);
+      if(pdfInput) pdfInput.value=finalUrl;
       if(statusEl){
-        statusEl.textContent=`✓ PDF uploaded (${file.name})`;
-        // After the success message, restore the hosting tip rather than
-        // hiding the slot — admins should keep seeing the GitHub-hosted PDF
-        // recommendation even after uploading via Cloudinary.
+        statusEl.textContent=`✓ Committed ${safeName} — GitHub Pages will serve it in ~30–60s`;
         setTimeout(()=>{
           if(statusEl){
             statusEl.textContent='Tip: For reliable PDF viewing, upload your PDF to the /pdfs folder in your GitHub repo and paste the URL instead.';
             statusEl.style.color='';
           }
-        },2500);
+        },5000);
       }
-      showToast('PDF uploaded — URL filled in.');
+      showToast('PDF committed to repo — URL filled in.');
       input.value='';
-      return url;
+      return finalUrl;
     }catch(e){
       console.error('[handleSongPDF] upload failed:', e);
       if(statusEl){
@@ -6157,8 +6235,11 @@ function stopProgression(){
 window.saveAppSettings=async()=>{
   const className=document.getElementById('settingClassName')?.value.trim()||'Guitar Class';
   const teacherName=document.getElementById('settingTeacherName')?.value.trim()||'';
+  const githubToken=document.getElementById('settingGithubToken')?.value.trim()||'';
   try{
-    await setDoc(doc(db,'settings','app'),{className,teacherName,updatedAt:serverTimestamp()});
+    // merge:true so we can update individual fields without clobbering siblings
+    await setDoc(doc(db,'settings','app'),{className,teacherName,githubToken,updatedAt:serverTimestamp()},{merge:true});
+    S._githubToken=githubToken;
     const full=teacherName?`${className} — ${teacherName}`:className;
     document.title=full;
     const logo=document.getElementById('navLogoName');
@@ -6176,8 +6257,11 @@ async function loadAppSettingsForm(){
       const d=snap.data();
       const cn=document.getElementById('settingClassName');
       const tn=document.getElementById('settingTeacherName');
+      const gt=document.getElementById('settingGithubToken');
       if(cn) cn.value=d.className||'';
       if(tn) tn.value=d.teacherName||'';
+      if(gt) gt.value=d.githubToken||'';
+      S._githubToken=d.githubToken||'';
     }
   }catch(e){}
 }
