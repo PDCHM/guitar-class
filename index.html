@@ -3507,6 +3507,33 @@ function renderResourcesPage(){
   const filterEl=document.getElementById('resourcesCatFilter');
   if(filterEl) filterEl.innerHTML=`<div class="cat-pill ${_resCurCat==='all'?'active':''}" onclick="filterResCat('all',this)">All</div>`
     +cats.map(c=>`<div class="cat-pill ${_resCurCat===c?'active':''}" onclick="filterResCat('${c}',this)">${c}</div>`).join('');
+  // Empty-state diagnostic — surfaces the actual numbers so the cause of
+  // "no resources" is visible in the UI itself (no DevTools needed).
+  if(!list.length){
+    const grid=document.getElementById('resourcesGrid');
+    if(grid){
+      const total=S.songs.length;
+      const publishedCount=S.songs.filter(s=>s.published!==false).length;
+      const drafts=total-publishedCount;
+      let advice='';
+      if(total===0) advice='No songs in Firestore yet (or the database read returned 0). Admin should add resources.';
+      else if(publishedCount===0) advice='All songs are saved as drafts. Admin needs to toggle Publish to Live in the Edit form.';
+      else if(_resCurCat && _resCurCat!=='all') advice='The category pill above is restricting the view. Click "All" to see every published resource.';
+      else advice='Songs exist and are published, but none reached the grid — try a hard refresh (Cmd+Shift+R) in case stale JS is cached.';
+      grid.innerHTML=`
+        <div style="grid-column:1/-1;text-align:center;padding:36px 20px;">
+          <p style="font-size:14px;color:var(--text);margin-bottom:14px;">No resources to show.</p>
+          <div style="font-size:11px;color:var(--muted);line-height:1.8;background:var(--surface2);padding:12px 16px;border-radius:8px;display:inline-block;text-align:left;">
+            <div><strong>${total}</strong> total songs loaded from Firestore</div>
+            <div><strong>${publishedCount}</strong> published &middot; <strong>${drafts}</strong> drafts</div>
+            <div>Browsing pill: <code>${_resCurCat||'(unset)'}</code></div>
+            <div>Your category: <code>${cat||'(none set)'}</code></div>
+          </div>
+          <p style="font-size:12px;color:var(--muted);margin-top:16px;max-width:440px;margin-left:auto;margin-right:auto;line-height:1.6;">${advice}</p>
+        </div>`;
+    }
+    return;
+  }
   renderResourcesGrid(list);
 }
 
