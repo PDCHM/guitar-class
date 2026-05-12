@@ -342,7 +342,7 @@
       <div id="recordDone" style="display:none;">
         <video id="recPlayback" controls playsinline style="width:100%;max-width:320px;border-radius:8px;margin-bottom:10px;background:#000;"></video>
         <br>
-        <button onclick="window.reRecord()" style="font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);border:1px solid var(--border);background:none;border-radius:6px;padding:5px 12px;cursor:pointer;">↺ Re-record</button>
+        <button onclick="window.reRecord()" style="font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);border:1px solid var(--border);background:none;border-radius:6px;padding:5px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>Re-record</button>
       </div>
     </div>
     <div class="form-row">
@@ -384,21 +384,21 @@
   <div class="page-header"><h2>Admin Panel</h2><p>Manage and Build</p></div>
   <div id="adminPendingBanner" style="display:none;background:rgba(238,64,53,0.08);border:1px solid rgba(238,64,53,0.25);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--text);align-items:center;gap:10px;flex-wrap:wrap;"></div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;">
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-addsong')">+ Add Resource</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-addsong')" style="display:inline-flex;align-items:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Resource</button>
     <button class="admin-qbtn" onclick="window.scrollToSec('sec-songlist')">Resource List</button>
     <button class="admin-qbtn" onclick="window.scrollToSec('sec-categories')">Categories</button>
     <button class="admin-qbtn" onclick="window.scrollToSec('sec-lessons')">Lessons</button>
     <button class="admin-qbtn" id="adminQbtnStudents" onclick="window.scrollToSec('sec-students')">Students</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-announcements')">📢 Announcements</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-practicetools')">🎸 Practice Tools</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-lessonplan')">📋 Lesson Planner</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-attendance')">✅ Attendance</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-bulkmsg')">📣 Bulk Message</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-challenge')">🏆 Challenge</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-songreqs')">🎵 Song Requests</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-announcements')">Announcements</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-practicetools')">Practice Tools</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-lessonplan')">Lesson Planner</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-attendance')">Attendance</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-bulkmsg')">Bulk Message</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-challenge')">Challenge</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-songreqs')">Song Requests</button>
     <button class="admin-qbtn" onclick="window.scrollToSec('sec-facilitators')">Facilitators</button>
     <button class="admin-qbtn" onclick="window.scrollToSec('sec-recordings')">Recordings</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-seasons')">🎓 Seasons</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-seasons')">Seasons</button>
   </div>
   <div class="stats-row">
     <div class="stat-card"><div class="stat-num" id="statSongs">—</div><div class="stat-label">Resources</div></div>
@@ -408,7 +408,7 @@
   </div>
   <div class="admin-grid">
     <div class="admin-section" id="sec-addsong">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 id="songFormTitle" style="margin:0;padding:0;border:none;">Add Resource</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 id="songFormTitle" style="margin:0;padding:0;border:none;">Add Resource</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button></div>
       <div class="form-group">
         <label class="form-label">Song Title</label>
         <input class="form-input" id="adminSongTitle" type="text" placeholder="e.g. Amazing Grace">
@@ -441,7 +441,7 @@
       <div style="margin-bottom:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <label class="form-label" style="margin-bottom:0;">Video Links</label>
-          <button class="btn btn-ghost btn-sm" onclick="window.addVideoLinkRow()" type="button">+ Add Video</button>
+          <button class="btn btn-ghost btn-sm" onclick="window.addVideoLinkRow()" type="button" style="display:inline-flex;align-items:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Video</button>
         </div>
         <div id="videoLinksManager" style="display:flex;flex-direction:column;gap:8px;"></div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
@@ -458,7 +458,7 @@
       <div style="margin-bottom:12px;">
         <label class="form-label">Documents</label>
         <div class="parts-manager" id="partsManager"></div>
-        <button class="btn btn-ghost btn-sm" onclick="addPartRow()">+ Add</button>
+        <button class="btn btn-ghost btn-sm" onclick="addPartRow()" style="display:inline-flex;align-items:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add</button>
       </div>
       <div class="progress-bar" id="songProgress"><div class="progress-fill" id="songFill"></div></div>
       <div id="songStatus" style="font-size:12px;color:var(--muted);margin-top:6px;display:none;"></div>
@@ -482,13 +482,13 @@
         <button class="btn btn-ghost btn-sm" id="cancelEditBtn" style="display:none" onclick="cancelEditSong()">Cancel</button>
       </div>
       <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
-        <div id="sec-songlist" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><h3 style="font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;margin:0;">Resource List</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+        <div id="sec-songlist" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><h3 style="font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;margin:0;">Resource List</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button></div>
         <div id="adminSongList"><div class="loading"><div class="spinner"></div> Loading...</div></div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:16px;">
       <div class="admin-section" id="sec-categories">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Manage Categories</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Manage Categories</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button></div>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
           <input class="form-input" id="newCatInput" type="text" placeholder="New category name..." style="flex:1;margin-bottom:0;">
           <button class="btn btn-primary btn-sm" style="flex-shrink:0;" onclick="adminAddCat()">Add</button>
@@ -496,9 +496,9 @@
         <div id="adminCatList" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
       </div>
       <div class="admin-section" id="sec-lessons">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Manage Lessons</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Manage Lessons</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button></div>
         <div id="seedLessonsWrapper" style="display:none;margin-bottom:14px;padding:14px;background:rgba(123,192,67,0.08);border:1px dashed rgba(123,192,67,0.4);border-radius:8px;">
-          <div style="font-size:13px;color:var(--text);margin-bottom:8px;font-weight:500;">🌱 No lessons yet?</div>
+          <div style="font-size:13px;color:var(--text);margin-bottom:8px;font-weight:500;display:flex;align-items:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--success);"><path d="M12 21v-7M12 14c-3.87 0-7-3.13-7-7 4 0 7 3 7 7zM12 14c0-3.87 3.13-7 7-7 0 4-3 7-7 7z"/></svg>No lessons yet?</div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Start with a ready-made curriculum: 10 Basic + 10 Intermediate + 7 Advanced lessons. You can edit or delete them after.</div>
           <button class="btn btn-primary btn-sm" id="seedLessonsBtn" onclick="window.seedLessons()">Seed 27 Starter Lessons</button>
         </div>
@@ -516,7 +516,7 @@
     </div>
   </div>
   <div class="admin-section" id="sec-facilitators" style="margin-top:20px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Manage Facilitators</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Manage Facilitators</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button></div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
       <input class="form-input" id="newFacInput" type="text" placeholder="Facilitator name..." style="flex:1;margin-bottom:0;">
       <button class="btn btn-primary btn-sm" style="flex-shrink:0;" onclick="window.adminAddFac()">Add</button>
@@ -532,7 +532,7 @@
     <div id="adminFacList" style="display:flex;flex-direction:column;gap:6px;"></div>
   </div>
   <div class="admin-section" id="sec-announcements" style="margin-top:20px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">📢 Announcements</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;display:flex;align-items:center;gap:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-7v16L3 13M11 19.5a2.5 2.5 0 01-5 0V13"/></svg>Announcements</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button></div>
     <div class="form-group">
       <label class="form-label">Title</label>
       <input class="form-input" id="annTitle" type="text" placeholder="e.g. Class this Saturday is cancelled">
@@ -563,11 +563,11 @@
     <div id="adminAnnouncementList" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;"></div>
   </div>
   <div class="admin-section" id="sec-students" style="margin-top:20px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Students</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Students</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button></div>
     <div id="adminStudentList"><div class="loading"><div class="spinner"></div> Loading...</div></div>
   </div>
   <div class="admin-section" id="sec-practicetools" style="margin-top:20px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">🎸 Practice Tools</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;display:flex;align-items:center;gap:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="18" r="3"/><line x1="10" y1="18" x2="10" y2="4"/><line x1="10" y1="4" x2="20" y2="7"/><line x1="20" y1="7" x2="20" y2="10"/></svg>Practice Tools</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button></div>
 
     <!-- SCALES GROUP -->
     <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Scales (Tools 1–9)</div>
@@ -576,29 +576,29 @@
     <!-- STRUMMING GROUP -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Strumming Patterns</div>
-      <button class="admin-top-btn" style="font-size:11px;" onclick="window.addPattern('strumming')">+ Add Pattern</button>
+      <button class="admin-top-btn" style="font-size:11px;display:inline-flex;align-items:center;gap:5px;" onclick="window.addPattern('strumming')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Pattern</button>
     </div>
     <div id="adminStrumTools" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;"></div>
 
     <!-- PLUCKING GROUP -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Plucking Patterns</div>
-      <button class="admin-top-btn" style="font-size:11px;" onclick="window.addPattern('plucking')">+ Add Pattern</button>
+      <button class="admin-top-btn" style="font-size:11px;display:inline-flex;align-items:center;gap:5px;" onclick="window.addPattern('plucking')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Pattern</button>
     </div>
     <div id="adminPluckTools" style="display:flex;flex-direction:column;gap:8px;"></div>
 
     <!-- PROGRESSIONS GROUP -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;margin-bottom:10px;">
       <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Chord Progressions</div>
-      <button class="admin-top-btn" onclick="window.openAddProgressionModal()">+ Add Progression</button>
+      <button class="admin-top-btn" onclick="window.openAddProgressionModal()" style="display:inline-flex;align-items:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Progression</button>
     </div>
     <div id="adminProgressionsList" style="display:flex;flex-direction:column;gap:8px;"></div>
   </div>
   <!-- LESSON PLANNER -->
   <div class="admin-section" id="sec-lessonplan" style="margin-top:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);">
-      <h3 style="margin:0;padding:0;border:none;">📋 Lesson Planner</h3>
-      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button>
+      <h3 style="margin:0;padding:0;border:none;display:flex;align-items:center;gap:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/></svg>Lesson Planner</h3>
+      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;">
       <div class="form-group" style="margin-bottom:0;min-width:150px;">
@@ -625,8 +625,8 @@
   <!-- ATTENDANCE -->
   <div class="admin-section" id="sec-attendance" style="margin-top:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);">
-      <h3 style="margin:0;padding:0;border:none;">✅ Attendance</h3>
-      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button>
+      <h3 style="margin:0;padding:0;border:none;display:flex;align-items:center;gap:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Attendance</h3>
+      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end;">
       <div class="form-group" style="margin-bottom:0;">
@@ -648,8 +648,8 @@
   <!-- BULK MESSAGE -->
   <div class="admin-section" id="sec-bulkmsg" style="margin-top:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);">
-      <h3 style="margin:0;padding:0;border:none;">📣 Bulk Message</h3>
-      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button>
+      <h3 style="margin:0;padding:0;border:none;display:flex;align-items:center;gap:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Bulk Message</h3>
+      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button>
     </div>
     <div class="form-group">
       <label class="form-label">Send to</label>
@@ -678,8 +678,8 @@
   <!-- WEEKLY CHALLENGE -->
   <div class="admin-section" id="sec-challenge" style="margin-top:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);">
-      <h3 style="margin:0;padding:0;border:none;">🏆 Weekly Challenge</h3>
-      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button>
+      <h3 style="margin:0;padding:0;border:none;display:flex;align-items:center;gap:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4zM7 4H3v3a3 3 0 003 3M17 4h4v3a3 3 0 01-3 3"/></svg>Weekly Challenge</h3>
+      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button>
     </div>
     <div class="form-group">
       <label class="form-label">Challenge title</label>
@@ -711,16 +711,16 @@
   <!-- SONG REQUESTS -->
   <div class="admin-section" id="sec-songreqs" style="margin-top:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);">
-      <h3 style="margin:0;padding:0;border:none;">🎵 Song Requests</h3>
-      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button>
+      <h3 style="margin:0;padding:0;border:none;display:flex;align-items:center;gap:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Song Requests</h3>
+      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button>
     </div>
     <div id="songRequestsAdmin" style="display:flex;flex-direction:column;gap:8px;"><div class="loading"><div class="spinner"></div> Loading...</div></div>
   </div>
 
   <div class="admin-section" id="sec-appsettings" style="margin-top:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);">
-      <h3 style="margin:0;padding:0;border:none;">⚙️ App Settings</h3>
-      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button>
+      <h3 style="margin:0;padding:0;border:none;display:flex;align-items:center;gap:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h.01A1.65 1.65 0 009 3.09V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v.01a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>App Settings</h3>
+      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button>
     </div>
     <div class="form-group">
       <label class="form-label">Class name (shown in nav & login)</label>
@@ -734,19 +734,19 @@
   </div>
 
   <div class="admin-section" id="sec-recordings" style="margin-top:20px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Member Recordings</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);"><h3 style="margin:0;padding:0;border:none;">Member Recordings</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button></div>
     <div id="adminUploadsWrap"><div class="loading"><div class="spinner"></div> Loading...</div></div>
   </div>
   <!-- SEASON SECTION -->
   <div class="admin-section" id="sec-seasons" style="margin-top:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);">
-      <h3 style="margin:0;padding:0;border:none;">🎓 Season Management</h3>
-      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')">↑ Top</button>
+      <h3 style="margin:0;padding:0;border:none;display:flex;align-items:center;gap:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Season Management</h3>
+      <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button>
     </div>
     <!-- Current season banner -->
     <div id="seasonBanner" style="margin-bottom:16px;"></div>
     <!-- Graduate button -->
-    <button onclick="window.openGraduateModal()" class="btn btn-primary" style="width:100%;margin-bottom:20px;" id="graduateBtn">🎓 Graduate Current Season</button>
+    <button onclick="window.openGraduateModal()" class="btn btn-primary" style="width:100%;margin-bottom:20px;display:inline-flex;align-items:center;justify-content:center;gap:8px;" id="graduateBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Graduate Current Season</button>
     <!-- Archive list -->
     <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;">Past Seasons</div>
     <div id="archiveList"></div>
@@ -756,8 +756,8 @@
   <div class="modal-overlay" id="graduateModal" onclick="closeModalOuter(event,'graduateModal')">
     <div class="modal" style="max-width:380px;">
       <div class="modal-header">
-        <h3 class="modal-title">🎓 Graduate Season</h3>
-        <button class="modal-close" onclick="closeModal('graduateModal')">✕</button>
+        <h3 class="modal-title" style="display:flex;align-items:center;gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Graduate Season</h3>
+        <button class="modal-close" onclick="closeModal('graduateModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
       </div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;" id="graduateModalSub">Season 1 will be archived. Choose what to do with facilitators:</p>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
@@ -795,21 +795,21 @@
     <div class="modal" style="max-width:420px;max-height:80vh;overflow-y:auto;">
       <div class="modal-header">
         <h3 class="modal-title" id="archiveViewTitle">Season Archive</h3>
-        <button class="modal-close" onclick="closeModal('archiveViewModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('archiveViewModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
       </div>
       <div id="archiveViewContent"></div>
     </div>
   </div>
 
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-addsong')">↑ Add Resource</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-songlist')">↑ Resource List</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-categories')">↑ Categories</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-lessons')">↑ Lessons</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-students')">↑ Students</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-facilitators')">↑ Facilitators</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-recordings')">↑ Recordings</button>
-    <button class="admin-qbtn" onclick="window.scrollToSec('sec-seasons')">🎓 Seasons</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-addsong')">Add Resource</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-songlist')">Resource List</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-categories')">Categories</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-lessons')">Lessons</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-students')">Students</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-facilitators')">Facilitators</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-recordings')">Recordings</button>
+    <button class="admin-qbtn" onclick="window.scrollToSec('sec-seasons')">Seasons</button>
   </div>
 </div>
 
@@ -826,7 +826,7 @@
         <div style="height:1px;background:var(--accent);margin:16px 0;"></div><div style="height:1px;background:var(--accent);margin:16px 0;"></div><div style="height:1px;background:var(--accent);margin:16px 0;"></div><div style="height:1px;background:var(--accent);margin:16px 0;"></div><div style="height:1px;background:var(--accent);margin:16px 0;"></div>
       </div>
       <div style="position:relative;text-align:center;">
-        <div style="width:56px;height:56px;border-radius:14px;background:var(--surface2);border:1px solid rgba(238,64,53,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-family:Georgia,serif;font-size:26px;color:var(--accent);">♪</div>
+        <div style="width:56px;height:56px;border-radius:14px;background:var(--surface2);border:1px solid rgba(238,64,53,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:var(--accent);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
         <h2 style="font-size:20px;color:var(--text);margin-bottom:6px;font-family:'Playfair Display',serif;">Facilitator Login</h2>
         <p style="color:var(--muted);font-size:13px;font-family:'DM Sans',sans-serif;">Select your name and enter password</p>
       </div>
@@ -866,7 +866,7 @@
   <div class="modal">
     <div class="modal-header">
       <h3 class="modal-title">Admin Login</h3>
-      <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+      <button class="modal-close" onclick="closeModal('loginModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
     <div class="form-group">
       <label class="form-label">Password</label>
@@ -881,7 +881,7 @@
   <div class="modal">
     <div class="modal-header">
       <h3 class="modal-title" id="partModalTitle">Voice Part</h3>
-      <button class="modal-close" onclick="closeModal('partModal')">✕</button>
+      <button class="modal-close" onclick="closeModal('partModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
     <div id="partModalContent"></div>
   </div>
@@ -892,7 +892,7 @@
   <div class="modal">
     <div class="modal-header">
       <h3 class="modal-title">Edit Profile</h3>
-      <button class="modal-close" onclick="closeModal('profileModal')">✕</button>
+      <button class="modal-close" onclick="closeModal('profileModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:18px;">
       <div id="profilePhotoPreview" style="width:80px;height:80px;border-radius:50%;background:rgba(3,146,207,0.15);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--accent);overflow:hidden;flex-shrink:0;"></div>
@@ -1065,7 +1065,7 @@
     <!-- Header -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
       <div>
-        <h2 style="font-size:26px;margin-bottom:4px;">Welcome, <span id="learnerWelcomeName" style="color:var(--accent);"></span> 👋 <button onclick="window.openProfileModal()" title="Edit profile" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 6px;vertical-align:middle;">✏️</button></h2>
+        <h2 style="font-size:26px;margin-bottom:4px;">Welcome, <span id="learnerWelcomeName" style="color:var(--accent);"></span> 👋 <button onclick="window.openProfileModal()" title="Edit profile" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:2px 6px;vertical-align:middle;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 114.03 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button></h2>
         <p style="font-size:13px;color:var(--muted);" id="learnerClassLabel">—</p>
       </div>
       <div id="learnerQuickStats" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
@@ -1333,7 +1333,7 @@
   <div class="modal" style="max-width:560px;">
     <div class="modal-header">
       <h3 class="modal-title" id="progressionModalTitle">Add Chord Progression</h3>
-      <button class="modal-close" onclick="closeModal('progressionModal')">✕</button>
+      <button class="modal-close" onclick="closeModal('progressionModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
     <div class="form-group">
       <label class="form-label">Name</label>
@@ -1406,7 +1406,7 @@
       <span id="pdfModalTitle" style="font-size:14px;font-weight:500;color:var(--text);"></span>
       <div style="display:flex;gap:8px;align-items:center;">
         <a id="pdfDownloadLink" href="#" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:12px;">⬇ Download</a>
-        <button class="modal-close" onclick="closeModal('pdfModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('pdfModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
       </div>
     </div>
     <iframe id="pdfFrame" style="flex:1;border:none;min-height:70vh;" src=""></iframe>
@@ -1787,7 +1787,7 @@ function renderSeasonBanner(){
         <div style="font-size:11px;color:var(--muted);">Started ${s.startDate||'—'} · ${count} recordings · ${(S.facilitators||[]).length} facilitators</div>
       </div>
     </div>`;
-  if(gb) gb.textContent=`🎓 Graduate ${s.name} →`;
+  if(gb) gb.innerHTML=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;vertical-align:-2px;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Graduate ${s.name} →`;
 }
 
 function renderArchiveList(){
@@ -1807,7 +1807,7 @@ function renderArchiveList(){
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;">
         <button onclick="window.viewArchive('${s.id}')" style="font-size:10px;padding:4px 10px;border-radius:5px;background:rgba(124,154,176,0.1);border:1px solid rgba(124,154,176,0.3);color:#7c9ab0;cursor:pointer;white-space:nowrap;">👁 View</button>
-        <button onclick="window.downloadArchivePDF('${s.id}')" style="font-size:10px;padding:4px 10px;border-radius:5px;background:rgba(176,141,87,0.1);border:1px solid rgba(238,64,53,0.2);color:var(--accent);cursor:pointer;white-space:nowrap;">↓ PDF</button>
+        <button onclick="window.downloadArchivePDF('${s.id}')" style="font-size:10px;padding:4px 10px;border-radius:5px;background:rgba(176,141,87,0.1);border:1px solid rgba(238,64,53,0.2);color:var(--accent);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>PDF</button>
       </div>
     </div>`).join('');
 }
@@ -1903,7 +1903,7 @@ window.viewArchive=async(seasonId)=>{
   } else {
     html+='<p style="font-size:13px;color:var(--muted);text-align:center;padding:20px 0;">No recordings in this season.</p>';
   }
-  html+=`<button onclick="window.downloadArchivePDF('${seasonId}')" style="width:100%;margin-top:12px;background:rgba(176,141,87,0.1);border:1px solid rgba(238,64,53,0.2);border-radius:8px;padding:9px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;">↓ Download PDF Report</button>`;
+  html+=`<button onclick="window.downloadArchivePDF('${seasonId}')" style="width:100%;margin-top:12px;background:rgba(176,141,87,0.1);border:1px solid rgba(238,64,53,0.2);border-radius:8px;padding:9px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Download PDF Report</button>`;
   document.getElementById('archiveViewContent').innerHTML=html;
   openModal('archiveViewModal');
 };
@@ -2207,7 +2207,7 @@ function renderLibrary(){
   if(!list.length){grid.innerHTML='<p style="color:var(--muted);font-size:14px;">No songs yet.</p>';return;}
   grid.innerHTML=list.map(s=>{
     const parts=(s.parts||[]).map(p=>`<span class="part-chip chip-${p.name.toLowerCase()}" onclick="openPart('${s.id}','${p.name}')">${p.name}</span>`).join('');
-    const yt=s.youtubeUrl?`<a href="${s.youtubeUrl}" target="_blank" class="btn btn-ghost btn-sm">▶ YouTube</a>`:'';
+    const yt=s.youtubeUrl?`<a href="${s.youtubeUrl}" target="_blank" class="btn btn-ghost btn-sm"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:-1px;"><path d="M8 5v14l11-7z"/></svg>YouTube</a>`:'';
     return `<div class="song-card">
       <div class="song-card-top">
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
@@ -2257,7 +2257,7 @@ window.openPartModal=(songId,partName,url)=>{
   } else {
     html+=`<div style="background:var(--surface2);border-radius:10px;padding:20px;text-align:center;color:var(--muted);font-size:13px;">No file uploaded yet.</div>`;
   }
-  if(s.youtubeUrl) html+=`<div style="margin-top:14px;"><a href="${s.youtubeUrl}" target="_blank" class="btn btn-ghost btn-sm">▶ Watch on YouTube</a></div>`;
+  if(s.youtubeUrl) html+=`<div style="margin-top:14px;"><a href="${s.youtubeUrl}" target="_blank" class="btn btn-ghost btn-sm"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:-1px;"><path d="M8 5v14l11-7z"/></svg>Watch on YouTube</a></div>`;
   document.getElementById('partModalContent').innerHTML=html;
   openModal('partModal');
 };
@@ -2368,7 +2368,7 @@ function renderMyUploads(){
         <span class="status-badge ${u.status==='approved'?'status-approved':'status-pending'}">${u.status}</span>
       </div>
       ${u.feedback?`<div style="background:rgba(3,146,207,0.12);border:1px solid rgba(238,64,53,0.1);border-radius:8px;padding:10px 12px;">
-        <div style="font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">💬 Feedback from Admin</div>
+        <div style="font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;display:flex;align-items:center;gap:4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Feedback from Admin</div>
         <div style="font-size:12px;color:var(--text);line-height:1.5;">${u.feedback}</div>
       </div>`:''}
     </div>`).join(''):'<p style="color:var(--muted);font-size:13px;">No submissions yet this session.</p>';
@@ -2559,7 +2559,7 @@ window.renderAdminCats=function renderAdminCats(){
     <div id="catrow_${c.id}" style="display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:8px;padding:8px 12px;margin-bottom:4px;transition:opacity .2s;">
       <span style="color:var(--muted);font-size:16px;cursor:ns-resize;flex-shrink:0;user-select:none;" 
         onmousedown="catDragMouseDown(event,'${c.id}')" 
-        ontouchstart="catDragTouch(event,'${c.id}')">⠿</span>
+        ontouchstart="catDragTouch(event,'${c.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg></span>
       <span style="flex:1;font-size:13px;">${c.name}</span>
       <button class="btn btn-ghost btn-sm" onclick="editCat('${c.id}')">Edit</button>
       <button class="btn btn-danger btn-sm" onclick="deleteCat('${c.id}')">Delete</button>
@@ -2684,10 +2684,10 @@ function renderAdminUploads(){
         ${u.note?`<div style="font-size:11px;color:var(--muted);margin-top:3px;font-style:italic;">"${u.note}"</div>`:''}
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-        ${u.url?`<a href="${u.url}" target="_blank" class="btn btn-ghost btn-sm">▶ Play</a>`:''}
+        ${u.url?`<a href="${u.url}" target="_blank" class="btn btn-ghost btn-sm"<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:-1px;"><path d="M8 5v14l11-7z"/></svg>Play</a>`:''}
         ${u.status!=='approved'?`<button class="btn btn-ghost btn-sm" onclick="window.approveUpload('${u.id}')">Approve</button>`:''}
         ${u.url?`<a href="${u.url}" target="_blank" class="btn btn-ghost btn-sm">↓ Download</a>`:''}
-        <button class="btn btn-danger btn-sm" onclick="window.deleteUpload('${u.id}')">✕ Delete</button>
+        <button class="btn btn-danger btn-sm" onclick="window.deleteUpload('${u.id}')"<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="margin-right:4px;vertical-align:-1px;"><path d="M6 18L18 6M6 6l12 12"/></svg>Delete</button>
       </div>
       <div style="background:var(--surface2);border-radius:8px;padding:10px;">
         <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">
@@ -2739,9 +2739,9 @@ function renderPartRows(){
     : S.partRows.map((p,i)=>`
     <div class="part-row-item">
       <input class="form-input" style="width:80px;padding:5px 8px;font-size:12px" value="${p.name}" onchange="_S.partRows[${i}].name=this.value" placeholder="File">
-      <span class="part-file-name">${p.file?p.file.name:(p.url?'✓ saved':'No file')}</span>
+      <span class="part-file-name">${p.file?p.file.name:(p.url?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px;vertical-align:-1px;color:var(--success);"><path d="M20 6L9 17l-5-5"/></svg>saved':'No file')}</span>
       <label class="part-upload-btn">Upload<input type="file" accept="*/*" style="display:none" onchange="partFile(${i},this)"></label>
-      <button style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px" onclick="_S.partRows.splice(${i},1);window.renderPR()">✕</button>
+      <button style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px" onclick="_S.partRows.splice(${i},1);window.renderPR()"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>`).join('');
 }
 
@@ -3327,7 +3327,7 @@ function renderLearnerMySubmissions(){
           <div class="upload-item-name">${u.lesson||u.part||'Video'}</div>
           <div class="upload-item-meta">${u.submittedAt?new Date(u.submittedAt.seconds*1000).toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'}):''}</div>
         </div>
-        ${u.url?`<a href="${u.url}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;flex-shrink:0;">▶ Play</a>`:''}
+        ${u.url?`<a href="${u.url}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;flex-shrink:0;"<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:-1px;"><path d="M8 5v14l11-7z"/></svg>Play</a>`:''}
       </div>
       ${(u.facFeedback&&u.facFeedback.length)?`
         <div style="width:100%;background:rgba(238,64,53,0.08);border:1px solid rgba(3,146,207,0.18);border-radius:8px;padding:10px 12px;">
@@ -3356,7 +3356,7 @@ function renderLearnerAllSubmissions(){
           <div style="font-size:13px;font-weight:500;color:var(--text);">${u.submittedBy||'Student'}</div>
           <div style="font-size:11px;color:var(--muted);">${u.lesson||u.part||''} · ${u.submittedAt?new Date(u.submittedAt.seconds*1000).toLocaleDateString('en-SG',{day:'numeric',month:'short'}):''}</div>
         </div>
-        ${u.url?`<a href="${u.url}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;">▶ Play</a>`:''}
+        ${u.url?`<a href="${u.url}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;"<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:-1px;"><path d="M8 5v14l11-7z"/></svg>Play</a>`:''}
       </div>
       ${(u.facFeedback&&u.facFeedback.length)?`<div style="font-size:12px;color:var(--muted);padding-top:6px;border-top:1px solid var(--border);">${u.facFeedback.map(f=>`<span style="color:var(--accent2);font-weight:500;">${f.name}:</span> ${f.text}`).join(' · ')}</div>`:''}
     </div>`).join('');
@@ -3394,7 +3394,7 @@ function renderResourcesPage(){
     const grid=document.getElementById('resourcesGrid');
     if(grid) grid.innerHTML=`
       <div style="grid-column:1/-1;text-align:center;padding:40px 20px;">
-        <div style="width:56px;height:56px;border-radius:14px;background:rgba(245,203,98,0.1);border:1px solid rgba(245,203,98,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px;">⏳</div>
+        <div style="width:56px;height:56px;border-radius:14px;background:rgba(245,203,98,0.1);border:1px solid rgba(245,203,98,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:#a07a00;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
         <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px;">Waiting for class assignment</div>
         <div style="font-size:13px;color:var(--muted);">Your teacher will assign you to a category soon. Resources will appear here once assigned.</div>
       </div>`;
@@ -3443,13 +3443,13 @@ function renderResourcesGrid(list){
   grid.innerHTML=list.map(s=>{
     const parts=(s.parts||[]).map(p=>{
       const isPdf=p.url&&(p.url.includes('.pdf')||p.type==='pdf');
-      return `<span class="part-chip chip-tenor" onclick="${isPdf?`window.openPdfViewer('${p.url}','${p.name}')`:`window.openPart('${s.id}','${p.name}')`}">${isPdf?'📄 ':''} ${p.name}</span>`;
+      return `<span class="part-chip chip-tenor" onclick="${isPdf?`window.openPdfViewer('${p.url}','${p.name}')`:`window.openPart('${s.id}','${p.name}')`}">${isPdf?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-1px;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> ':''} ${p.name}</span>`;
     }).join('');
     // Support multiple video links with fallback to legacy youtubeUrl
     const vids=s.videoLinks&&s.videoLinks.length?s.videoLinks:
       (s.youtubeUrl?[{label:'Watch',url:s.youtubeUrl}]:[]);
-    const vtBtns=vids.map((v,i)=>`<a href="${v.url}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;">▶ ${v.label||(vids.length>1?'Video '+(i+1):'Watch')}</a>`).join('');
-    const pdf=s.pdfUrl?`<button onclick="window.openPdfViewer('${s.pdfUrl}','${s.title} — Chord Sheet')" class="btn btn-ghost btn-sm">📄 Chord Sheet</button>`:'';
+    const vtBtns=vids.map((v,i)=>`<a href="${v.url}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:-1px;"><path d="M8 5v14l11-7z"/></svg>${v.label||(vids.length>1?'Video '+(i+1):'Watch')}</a>`).join('');
+    const pdf=s.pdfUrl?`<button onclick="window.openPdfViewer('${s.pdfUrl}','${s.title} — Chord Sheet')" class="btn btn-ghost btn-sm"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-1px;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Chord Sheet</button>`:'';
     return `<div class="song-card">
       <div class="song-card-top">
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
@@ -3612,7 +3612,7 @@ function renderAdminPendingBanner(){
   if(banner){
     if(count>0){
       banner.style.display = 'flex';
-      banner.innerHTML = `🔔 <span style="flex:1;"><strong>${count}</strong> student${count===1?'':'s'} waiting for approval</span><button onclick="window.scrollToSec('sec-students')" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;">Go to Students →</button>`;
+      banner.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);flex-shrink:0;"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg> <span style="flex:1;"><strong>${count}</strong> student${count===1?'':'s'} waiting for approval</span><button onclick="window.scrollToSec('sec-students')" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;">Go to Students →</button>`;
     } else {
       banner.style.display = 'none';
     }
@@ -3681,7 +3681,7 @@ function renderAdminStudents(){
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
               <input type="text" class="form-input" style="border:none;background:transparent;padding:3px 0;font-size:12px;margin-bottom:0;flex:1;" placeholder="Set password" value="${s.adminPassword||''}" onchange="window.updateStudentField('${s.id}','adminPassword',this.value)" title="Password visible to admin only">
             </div>`}
-        <button class="btn btn-sm" style="background:rgba(3,146,207,0.1);color:var(--success);border:1px solid rgba(3,146,207,0.25);font-size:11px;" onclick="window.approveStudent('${s.id}')">✓ Approve</button>
+        <button class="btn btn-sm" style="background:rgba(3,146,207,0.1);color:var(--success);border:1px solid rgba(3,146,207,0.25);font-size:11px;" onclick="window.approveStudent('${s.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:-1px;"><path d="M20 6L9 17l-5-5"/></svg>Approve</button>
         <button class="btn btn-danger btn-sm" onclick="window.deleteStudent('${s.id}')">Remove</button>
       </div>
       <!-- Admin private note -->
@@ -4465,11 +4465,11 @@ function renderAdminAnnouncements(){
   el.innerHTML=S.announcements.map(a=>`
     <div style="background:var(--surface2);border-radius:8px;padding:10px 12px;display:flex;align-items:flex-start;gap:10px;">
       <div style="flex:1;">
-        <div style="font-size:13px;font-weight:500;color:var(--text);">${a.pinned?'📌 ':''}${a.title}</div>
+        <div style="font-size:13px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:5px;">${a.pinned?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 002-2H6a2 2 0 002 2h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24z"/></svg>':''}${a.title}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px;">${a.body.slice(0,80)}${a.body.length>80?'...':''}</div>
         <div style="font-size:10px;color:var(--muted);margin-top:3px;">${a.audience==='all'?'All students':a.audience+' only'}</div>
       </div>
-      <button class="btn btn-danger btn-sm" onclick="window.deleteAnnouncement('${a.id}')">✕</button>
+      <button class="btn btn-danger btn-sm" onclick="window.deleteAnnouncement('${a.id}')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>`).join('');
 }
 
@@ -4483,7 +4483,7 @@ function renderCommunityAnnouncements(){
     +visible.map(a=>`
     <div style="background:${a.pinned?'rgba(238,64,53,0.08)':'var(--surface)'};border:1px solid ${a.pinned?'rgba(238,64,53,0.1)':'var(--border)'};border-radius:12px;padding:14px 16px;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-        ${a.pinned?'<span style="font-size:10px;background:rgba(3,146,207,0.15);color:var(--accent);padding:2px 7px;border-radius:4px;font-weight:600;">📌 Pinned</span>':''}
+        ${a.pinned?'<span style="font-size:10px;background:rgba(3,146,207,0.15);color:var(--accent);padding:2px 7px;border-radius:4px;font-weight:600;display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 002-2H6a2 2 0 002 2h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24z"/></svg>Pinned</span>':''}
         <div style="font-size:14px;font-weight:600;color:var(--text);">${a.title}</div>
       </div>
       <div style="font-size:13px;color:var(--muted);line-height:1.6;">${a.body}</div>
@@ -4651,7 +4651,7 @@ async function renderProgressTab(){
             background:${done?'rgba(238,64,53,0.12)':'var(--surface2)'};
             color:${done?'var(--accent)':'var(--muted)'};
             border:1px solid ${done?'rgba(238,64,53,0.3)':'var(--border)'};">
-            ${done?'✓ ':''} ${l}
+            ${done?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" style="margin-right:3px;vertical-align:-1px;"><path d="M20 6L9 17l-5-5"/></svg> ':''} ${l}
           </div>`;
         }).join('')}
       </div>
@@ -4998,7 +4998,7 @@ async function renderPracticeLog(){
         <div style="font-size:13px;color:var(--text);">${l.note||'Practice session'}</div>
         <div style="font-size:11px;color:var(--muted);">${l.duration} min · ${l.createdAt?new Date(l.createdAt.seconds*1000).toLocaleDateString('en-SG',{weekday:'short',day:'numeric',month:'short'}):''}</div>
       </div>
-      <button onclick="window.deletePracticeLog('${l.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:4px 6px;">✕</button>
+      <button onclick="window.deletePracticeLog('${l.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:4px 6px;"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>`).join('');
 }
 
@@ -5037,7 +5037,7 @@ async function renderSongRequests(){
     if(!reqs.length){el.innerHTML='<p style="font-size:12px;color:var(--muted);">No requests yet.</p>';return;}
     el.innerHTML=reqs.map(r=>`
       <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:8px;padding:8px 12px;">
-        <span style="font-size:18px;">${r.status==='done'?'✅':r.status==='noted'?'👀':'🎵'}</span>
+        <span style="display:inline-flex;align-items:center;color:${r.status==='done'?'var(--success)':r.status==='noted'?'var(--accent2)':'var(--accent)'};">${r.status==='done'?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>':r.status==='noted'?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>':'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>'}</span>
         <div style="flex:1;font-size:13px;color:var(--text);">${r.song}</div>
         <span style="font-size:10px;padding:2px 7px;border-radius:4px;background:${r.status==='done'?'rgba(3,146,207,0.12)':'rgba(238,64,53,0.12)'};color:${r.status==='done'?'var(--accent2)':'var(--muted)'};">${r.status||'pending'}</span>
       </div>`).join('');
@@ -5212,7 +5212,7 @@ async function renderWeeklyChallenge(){
     el.innerHTML=`
       <div style="background:linear-gradient(135deg,rgba(238,64,53,0.08),rgba(3,146,207,0.06));border:1px solid rgba(238,64,53,0.25);border-radius:14px;padding:18px;">
         <div style="display:flex;align-items:flex-start;gap:12px;">
-          <span style="font-size:28px;flex-shrink:0;">🏆</span>
+          <span style="display:inline-flex;flex-shrink:0;color:var(--accent);"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4zM7 4H3v3a3 3 0 003 3M17 4h4v3a3 3 0 01-3 3"/></svg></span>
           <div style="flex:1;">
             <div style="font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Weekly Challenge${deadline?' · Due '+deadline:''}</div>
             <div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px;">${active.title}</div>
@@ -5304,7 +5304,7 @@ async function renderSongRequestsAdmin(){
     if(!reqs.length){el.innerHTML='<p style="font-size:13px;color:var(--muted);">No song requests yet.</p>';return;}
     el.innerHTML=reqs.map(r=>`
       <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:10px;padding:12px 14px;flex-wrap:wrap;">
-        <span style="font-size:18px;">${r.status==='done'?'✅':r.status==='noted'?'👀':'🎵'}</span>
+        <span style="display:inline-flex;align-items:center;color:${r.status==='done'?'var(--success)':r.status==='noted'?'var(--accent2)':'var(--accent)'};">${r.status==='done'?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>':r.status==='noted'?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>':'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>'}</span>
         <div style="flex:1;">
           <div style="font-size:13px;color:var(--text);">${r.song}</div>
           <div style="font-size:11px;color:var(--muted);">by ${r.studentName||'—'} · ${r.createdAt?new Date(r.createdAt.seconds*1000).toLocaleDateString('en-SG',{day:'numeric',month:'short'}):''}</div>
@@ -5312,7 +5312,7 @@ async function renderSongRequestsAdmin(){
         <select class="form-input" style="width:120px;margin-bottom:0;font-size:12px;" onchange="window.updateSongRequest('${r.id}',this.value)">
           <option value="pending" ${(r.status||'pending')==='pending'?'selected':''}>Pending</option>
           <option value="noted" ${r.status==='noted'?'selected':''}>Noted 👀</option>
-          <option value="done" ${r.status==='done'?'selected':''}>Added ✅</option>
+          <option value="done" ${r.status==='done'?'selected':''}>Added</option>
         </select>
         <button onclick="window.deleteSongRequest('${r.id}',${JSON.stringify(r.song||'')})" class="btn btn-danger btn-sm">Remove</button>
       </div>`).join('');
@@ -5364,7 +5364,7 @@ function renderVideoLinks() {
     row.innerHTML = `
       <input class="form-input" style="width:130px;margin-bottom:0;font-size:12px;" placeholder="Label (e.g. Part 1)" value="${v.label||''}" oninput="window._setVideoLink(${i},'label',this.value)">
       <input class="form-input" style="flex:1;min-width:180px;margin-bottom:0;font-size:12px;" placeholder="https://youtube.com/... or any video URL" value="${v.url||''}" oninput="window._setVideoLink(${i},'url',this.value)">
-      <button onclick="window._removeVideoLink(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0;" type="button">✕</button>`;
+      <button onclick="window._removeVideoLink(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0;" type="button"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>`;
     mgr.appendChild(row);
   });
 }
@@ -5575,7 +5575,7 @@ function renderProgressions(){
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <button id="progPlayBtn-${p.id}" onclick="window.toggleProgression('${p.id}')"
           style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:13px;font-weight:500;cursor:pointer;">
-          ▶ Play
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:-1px;"><path d="M8 5v14l11-7z"/></svg>Play
         </button>
         <div id="progBeats-${p.id}" style="display:flex;align-items:center;gap:2px;min-width:60px;"></div>
         <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);">
@@ -5775,7 +5775,7 @@ function startProgression(id, bpmOverride){
 
   _progState = {id, playing:true};
   const btn = document.getElementById('progPlayBtn-'+id);
-  if(btn){btn.textContent='⏹ Stop'; btn.style.background='var(--danger)';}
+  if(btn){btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:-1px;"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>Stop'; btn.style.background='var(--danger)';}
 
   let nextBeatTime = ctx.currentTime + 0.1;
   let beatNum = 0;        // beat within chord
@@ -5860,7 +5860,7 @@ function stopProgression(){
     if(beatsEl) beatsEl.innerHTML='';
   }
   const btn = document.getElementById('progPlayBtn-'+id);
-  if(btn){btn.textContent='▶ Play';btn.style.background='var(--accent)';}
+  if(btn){btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:-1px;"><path d="M8 5v14l11-7z"/></svg>Play';btn.style.background='var(--accent)';}
   _progState={};
 }
 
