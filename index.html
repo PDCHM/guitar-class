@@ -1163,7 +1163,7 @@
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;">
           <div class="form-group" style="margin-bottom:0;min-width:100px;">
             <label class="form-label">Key</label>
-            <select class="form-input" id="fb-key" onchange="drawFretboard()" style="padding:7px 10px;">
+            <select class="form-input" id="fb-key" onchange="window.drawFretboard()" style="padding:7px 10px;">
               <option value="0">C</option><option value="1">C#/Db</option><option value="2">D</option>
               <option value="3">D#/Eb</option><option value="4">E</option><option value="5">F</option>
               <option value="6">F#/Gb</option><option value="7">G</option><option value="8">G#/Ab</option>
@@ -1172,11 +1172,11 @@
           </div>
           <div class="form-group" style="margin-bottom:0;min-width:180px;" id="fb-scale-wrap">
             <label class="form-label">Scale / Variant</label>
-            <select class="form-input" id="fb-scale" onchange="drawFretboard()" style="padding:7px 10px;"></select>
+            <select class="form-input" id="fb-scale" onchange="window.drawFretboard()" style="padding:7px 10px;"></select>
           </div>
           <div class="form-group" style="margin-bottom:0;min-width:130px;">
             <label class="form-label">Position</label>
-            <select class="form-input" id="fb-position" onchange="drawFretboard()" style="padding:7px 10px;">
+            <select class="form-input" id="fb-position" onchange="window.drawFretboard()" style="padding:7px 10px;">
               <option value="all">All positions</option>
               <option value="0">Box 1</option><option value="1">Box 2</option>
               <option value="2">Box 3</option><option value="3">Box 4</option><option value="4">Box 5</option>
@@ -3912,14 +3912,20 @@ window.drawFretboard=()=>{
   const scale=SCALES[scaleKey]||SCALES.pentatonic_major;
   const isCaged=!!scale.caged;
 
-  // CAGED shape fret windows (offsets from root on low E string)
-  // [shape, startFretOffset, endFretOffset, fret positions per string for chord tones]
+  // CAGED shape windows. Each shape has its own anchor string and its own
+  // position formula keyed off the selected root note (semitones from C, 0-11):
+  //   C shape  – anchor: A string. A-string fret (pos+3) holds the root.   pos = root
+  //   A shape  – anchor: A string. A-string fret pos holds the root.       pos = (root-9+12)%12
+  //   G shape  – anchor: low E.    Low-E fret (pos+3) holds the root.      pos = (root-7+12)%12
+  //   E shape  – anchor: low E.    Low-E fret pos holds the root.          pos = (root-4+12)%12
+  //   D shape  – anchor: D string. D-string fret pos holds the root.       pos = (root-2+12)%12
+  // For C major (root=0): C@0, A@3, G@5, E@8, D@10 — standard CAGED.
   const CAGED_SHAPES={
-    C:{desc:'The C shape sits around the open C chord. As you move it up the neck, the root shifts to the barre finger.',window:[0,5]},
-    A:{desc:'The A shape is based on the open A chord. Barre the 2nd fret of the A shape to get any major chord.',window:[2,7]},
-    G:{desc:'The G shape spans the widest range on the neck — great for full-chord voicings and lead runs.',window:[4,9]},
-    E:{desc:'The E shape is the most common barre chord shape. Barre any fret to play a major chord.',window:[5,10]},
-    D:{desc:'The D shape sits high on the neck. Often used for inversions and upper-register voicings.',window:[7,12]},
+    C:{desc:'The C shape is rooted on the A string at the 3rd fret of the shape. The open C chord (x32010) is its base form.',windowSpan:3,position:(r)=>r},
+    A:{desc:'The A shape is rooted on the A string at the barre fret. The open A chord (x02220) is its base form.',windowSpan:3,position:(r)=>(r-9+12)%12},
+    G:{desc:'The G shape spans the widest range on the neck. Roots on both the low E and high E strings.',windowSpan:4,position:(r)=>(r-7+12)%12},
+    E:{desc:'The E shape is rooted on the low E string at the barre fret — the most common barre chord shape.',windowSpan:4,position:(r)=>(r-4+12)%12},
+    D:{desc:'The D shape is rooted on the D string at the barre fret. Used for upper-register voicings.',windowSpan:3,position:(r)=>(r-2+12)%12},
   };
 
   // Show/hide CAGED info
@@ -3951,10 +3957,12 @@ window.drawFretboard=()=>{
   let fretStart=1, fretEnd=16;
   if(isCaged){
     const shape=scale.caged;
-    const off=CAGED_SHAPES[shape].window;
-    const rootFretE=(root-FB_OPEN[5]+12)%12;
-    fretStart=rootFretE+off[0]; fretEnd=rootFretE+off[1];
-    if(fretStart<1){fretStart+=12;fretEnd+=12;}
+    const data=CAGED_SHAPES[shape];
+    if(data){
+      const pos=data.position(root);
+      fretStart=pos;
+      fretEnd=pos+data.windowSpan;
+    }
   } else if(posIdx!=='all'){
     const b=boxes[+posIdx];
     if(b){fretStart=b.start;fretEnd=b.end;}
