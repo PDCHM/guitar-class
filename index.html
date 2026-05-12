@@ -3866,7 +3866,7 @@ window.switchPracticeTab=(tab,el)=>{
     if(p) p.style.display=t===tab?'block':'none';
     if(b){ b.style.borderColor=t===tab?'var(--accent)':'transparent'; b.style.color=t===tab?'var(--accent)':'var(--muted)'; }
   });
-  if(tab==='scales'){ applyScaleVisibility(); populateScaleDropdown(); drawFretboard(); }
+  if(tab==='scales'){ applyScaleVisibility(); populateScaleDropdown(); window.drawFretboard(); }
   if(tab==='rhythm') renderPatternCards('strumming','strummingGrid');
   if(tab==='picking') renderPatternCards('plucking','pluckingGrid');
   if(tab==='progressions') renderProgressions();
@@ -3916,7 +3916,7 @@ window.switchScale=(group,el)=>{
   });
   if(el){ el.style.borderColor='var(--accent)'; el.style.color='var(--accent)'; }
   populateScaleDropdown();
-  drawFretboard();
+  window.drawFretboard();
 };
 
 function populateScaleDropdown(){
@@ -3953,6 +3953,8 @@ window.drawFretboard=()=>{
   const posIdx=pEl.value;
   const scale=SCALES[scaleKey]||SCALES.pentatonic_major;
   const isCaged=!!scale.caged;
+  // TEMP debug: confirms onchange handlers reach this function. Remove once verified.
+  console.log('drawFretboard called, position=', posIdx, 'scale=', scaleKey, 'key=', root);
 
   // CAGED shape windows. Each shape has its own anchor string and its own
   // position formula keyed off the selected root note (semitones from C, 0-11):
