@@ -2443,6 +2443,13 @@ window.handleSongVideo = async (input) => {
 };
 
 window.adminSaveSong=async(saveType)=>{
+  // Wait for any in-flight PDF upload to finish before reading inputs.
+  // Without this, clicking Save mid-upload caused pdfUrl:'' to be written
+  // to Firestore even though the upload eventually succeeded.
+  if(_pdfUploadPromise){
+    showToast('Waiting for PDF upload to finish…');
+    try{ await _pdfUploadPromise; }catch(e){ /* error already surfaced */ }
+  }
   const title=document.getElementById('adminSongTitle').value.trim();
   const cat=document.getElementById('adminSongCat').value;
   // Collect video links (filter out empties)
@@ -2450,6 +2457,7 @@ window.adminSaveSong=async(saveType)=>{
   // Keep youtubeUrl as first video link for backwards compat
   const yt=videoLinks.length?videoLinks[0].url:'';
   const pdfUrl=document.getElementById('adminSongPDF')?.value.trim()||'';
+  console.log('[adminSaveSong] pdfUrl at save time =', JSON.stringify(pdfUrl));
   const lesson=document.getElementById('adminSongLesson').value||'';
   const published=saveType==='draft'?false:(document.getElementById('adminSongPublish')?document.getElementById('adminSongPublish').checked:true);
   if(!title){showToast('Please enter a song title.');return;}
@@ -2522,6 +2530,7 @@ window.cancelEditSong=()=>{
   S.editingId=null;
   document.getElementById('adminSongTitle').value='';
   document.getElementById('adminSongLesson').value='';
+  const pdfEl=document.getElementById('adminSongPDF'); if(pdfEl) pdfEl.value='';
   document.getElementById('adminSongVideoName').textContent='';
   document.getElementById('adminSongVideo').value='';
   document.getElementById('songFormTitle').textContent='Add Resource';
@@ -5625,6 +5634,12 @@ window.pdfNextPage=()=>{
 // Uses the shared uploadToCloudinary helper (same one used for videos and
 // other media) — auto-detects resource_type=raw for application/pdf and
 // reports real upload progress via XHR.
+//
+// _pdfUploadPromise tracks an in-flight upload so adminSaveSong can await
+// it before reading the input value. Without this, clicking Save while a
+// large PDF is still uploading caused the save to write pdfUrl:'' before
+// the upload finished and populated the input — Edit then showed empty.
+let _pdfUploadPromise=null;
 window.handleSongPDF=async(input)=>{
   const file=input.files[0];
   if(!file) return;
@@ -5633,28 +5648,36 @@ window.handleSongPDF=async(input)=>{
   if(statusEl){
     statusEl.style.display='block';
     statusEl.textContent=`Uploading ${file.name}...`;
+    statusEl.style.color='';
   }
-  try{
-    const url=await uploadToCloudinary(file, pct=>{
-      if(statusEl) statusEl.textContent=`Uploading ${file.name}... ${pct}%`;
-    });
-    if(pdfInput) pdfInput.value=url;
-    if(statusEl){
-      statusEl.textContent=`✓ PDF uploaded (${file.name})`;
-      setTimeout(()=>{ if(statusEl) statusEl.style.display='none'; },2500);
+  _pdfUploadPromise=(async()=>{
+    try{
+      const url=await uploadToCloudinary(file, pct=>{
+        if(statusEl) statusEl.textContent=`Uploading ${file.name}... ${pct}%`;
+      });
+      console.log('[handleSongPDF] upload complete, setting adminSongPDF.value =', url);
+      if(pdfInput) pdfInput.value=url;
+      if(statusEl){
+        statusEl.textContent=`✓ PDF uploaded (${file.name})`;
+        setTimeout(()=>{ if(statusEl) statusEl.style.display='none'; },2500);
+      }
+      showToast('PDF uploaded — URL filled in.');
+      input.value='';
+      return url;
+    }catch(e){
+      console.error('[handleSongPDF] upload failed:', e);
+      if(statusEl){
+        statusEl.textContent='Upload failed: '+(e.message||'Unknown error');
+        statusEl.style.color='var(--danger)';
+      }
+      showToast('PDF upload failed: '+(e.message||'Unknown error'));
+      input.value='';
+      return '';
+    }finally{
+      _pdfUploadPromise=null;
     }
-    showToast('PDF uploaded — URL filled in.');
-    // Clear the file input so picking the same file again still fires onchange
-    input.value='';
-  }catch(e){
-    console.error('PDF upload failed:', e);
-    if(statusEl){
-      statusEl.textContent='Upload failed: '+(e.message||'Unknown error');
-      statusEl.style.color='var(--danger)';
-    }
-    showToast('PDF upload failed: '+(e.message||'Unknown error'));
-    input.value='';
-  }
+  })();
+  return _pdfUploadPromise;
 };
 
 // ── QUICK STATS (welcome header) ──────────────────────────────────────────────
