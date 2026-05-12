@@ -3792,7 +3792,7 @@ const SCALE_GROUPS = {
   chromatic:{ options:[{v:'chromatic',l:'Chromatic Scale'}] },
   diatonic: { options:[{v:'diatonic',l:'Diatonic Scale'}] },
   diminished:{ options:[{v:'dim_whole_half',l:'Whole-Half Diminished'},{v:'dim_half_whole',l:'Half-Whole Diminished'},{v:'dim7_arpeggio',l:'Diminished 7th Arpeggio'}] },
-  caged:    { options:[{v:'caged_c',l:'C Shape'},{v:'caged_a',l:'A Shape'},{v:'caged_g',l:'G Shape'},{v:'caged_e',l:'E Shape'},{v:'caged_d',l:'D Shape'}] },
+  caged:    { options:[{v:'caged_all',l:'All Shapes'},{v:'caged_c',l:'C Shape'},{v:'caged_a',l:'A Shape'},{v:'caged_g',l:'G Shape'},{v:'caged_e',l:'E Shape'},{v:'caged_d',l:'D Shape'}] },
 };
 
 const SCALES = {
@@ -3819,7 +3819,9 @@ const SCALES = {
   dim_whole_half:   {intervals:[0,2,3,5,6,8,9,11],name:'Whole-Half Diminished'},
   dim_half_whole:   {intervals:[0,1,3,4,6,7,9,10],name:'Half-Whole Diminished'},
   dim7_arpeggio:    {intervals:[0,3,6,9],          name:'Diminished 7th Arpeggio'},
-  // CAGED shapes — intervals are the chord tones (1 3 5) that appear in each shape region
+  // CAGED shapes — intervals are the chord tones (1 3 5) that appear in each shape region.
+  // 'caged:all' means show every chord tone across the full neck with no window restriction.
+  caged_all:        {intervals:[0,4,7],name:'CAGED — All Shapes', caged:'all'},
   caged_c:          {intervals:[0,4,7],name:'CAGED — C Shape', caged:'C'},
   caged_a:          {intervals:[0,4,7],name:'CAGED — A Shape', caged:'A'},
   caged_g:          {intervals:[0,4,7],name:'CAGED — G Shape', caged:'G'},
@@ -3916,6 +3918,14 @@ window.switchScale=(group,el)=>{
   });
   if(el){ el.style.borderColor='var(--accent)'; el.style.color='var(--accent)'; }
   populateScaleDropdown();
+  // Hide the Position dropdown when CAGED is active — the Scale/Variant
+  // dropdown (C/A/G/E/D + All Shapes) is the only control needed.
+  const posEl=document.getElementById('fb-position');
+  const posWrap=posEl?.closest('.form-group');
+  if(posWrap) posWrap.style.display=(group==='caged')?'none':'';
+  // Reset Position to "all" so non-CAGED scales aren't stuck in a stale box
+  // selection that the user can't see while CAGED is up.
+  if(group==='caged' && posEl) posEl.value='all';
   window.drawFretboard();
 };
 
@@ -3953,8 +3963,6 @@ window.drawFretboard=()=>{
   const posIdx=pEl.value;
   const scale=SCALES[scaleKey]||SCALES.pentatonic_major;
   const isCaged=!!scale.caged;
-  // TEMP debug: confirms onchange handlers reach this function. Remove once verified.
-  console.log('drawFretboard called, position=', posIdx, 'scale=', scaleKey, 'key=', root);
 
   // CAGED shape windows. Each shape has its own anchor string and its own
   // position formula keyed off the selected root note (semitones from C, 0-11):
@@ -3973,37 +3981,27 @@ window.drawFretboard=()=>{
   };
 
   // ── CAGED active-shape resolution ─────────────────────────────────────────
-  // Position selector drives the active shape when CAGED is in play:
-  //   "all"  → full neck, no window dimming (Scale/Variant decides the
-  //            description shape but no fret restriction is applied)
-  //   "0..4" → Box 1..5 maps to E / D / C / A / G respectively. This is the
-  //            order shapes are encountered as you move up the neck from
-  //            the root note on the low E string.
-  const CAGED_BOX_TO_SHAPE=['E','D','C','A','G'];
-  let cagedActiveShape=null;
-  let cagedShowAll=false;
-  if(isCaged){
-    if(posIdx==='all'){
-      cagedActiveShape=scale.caged;
-      cagedShowAll=true;
-    } else {
-      cagedActiveShape=CAGED_BOX_TO_SHAPE[parseInt(posIdx)]||scale.caged;
-    }
-  }
+  // The Scale/Variant dropdown is the single source of truth for CAGED.
+  //   scale.caged === 'all' → full neck, every chord tone shown, no window
+  //   scale.caged === 'C'|'A'|'G'|'E'|'D' → that shape's window only
+  // NOTE: CAGED_BOX_TO_SHAPE and BOX_OFFSETS are intentionally retained
+  // elsewhere — non-CAGED scales (penta/modes/etc.) still use them for
+  // their own Box 1..5 selector.
+  const cagedActiveShape=isCaged?scale.caged:null;
+  const cagedShowAll=isCaged&&cagedActiveShape==='all';
 
   // Show/hide CAGED info
   const cagedInfo=document.getElementById('caged-info');
   const cagedName=document.getElementById('caged-shape-name');
   const cagedDesc=document.getElementById('caged-shape-desc');
   if(isCaged&&cagedInfo){
-    const shapeData=CAGED_SHAPES[cagedActiveShape];
     cagedInfo.style.display='block';
     if(cagedShowAll){
-      cagedName.textContent='All Positions';
-      cagedDesc.textContent='Showing all CAGED chord tones across the fretboard. Switch to Box 1–5 to focus on one shape.';
+      cagedName.textContent='All Shapes';
+      cagedDesc.textContent='Major chord tones across the full fretboard. Select a specific shape (C/A/G/E/D) to focus on its window.';
     } else {
-      const boxNum=CAGED_BOX_TO_SHAPE.indexOf(cagedActiveShape)+1;
-      cagedName.textContent=`${cagedActiveShape} Shape (Box ${boxNum})`;
+      const shapeData=CAGED_SHAPES[cagedActiveShape];
+      cagedName.textContent=`${cagedActiveShape} Shape`;
       cagedDesc.textContent=shapeData?shapeData.desc:'';
     }
   } else if(cagedInfo){
