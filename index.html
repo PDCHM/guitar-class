@@ -2513,7 +2513,6 @@ window.adminSaveSong=async(saveType)=>{
   // Keep youtubeUrl as first video link for backwards compat
   const yt=videoLinks.length?videoLinks[0].url:'';
   const pdfUrl=document.getElementById('adminSongPDF')?.value.trim()||'';
-  console.log('[adminSaveSong] pdfUrl at save time =', JSON.stringify(pdfUrl));
   const lesson=document.getElementById('adminSongLesson').value||'';
   // Direct per-value checkbox read. Avoids any pseudo-class quirks that
   // could keep `input:checked` from matching (e.g., if a checkbox state was
@@ -2524,16 +2523,6 @@ window.adminSaveSong=async(saveType)=>{
     const cb = document.querySelector('#visibleToOptions input[value="' + catName + '"]');
     if(cb && cb.checked) visibleTo.push(catName);
   });
-  // TEMP debug — also reports container/state so we can see what the DOM
-  // actually looks like at save time. Remove once verified.
-  const _vtContainer = document.querySelector('#visibleToOptions');
-  const _vtTotal = _vtContainer ? _vtContainer.querySelectorAll('input[type="checkbox"]').length : 0;
-  alert(
-    'visibleTo being saved: ' + JSON.stringify(visibleTo) +
-    '\ncontainer found: ' + !!_vtContainer +
-    '\ntotal checkboxes in container: ' + _vtTotal +
-    '\nediting existing? ' + (!!S.editingId)
-  );
   const published=saveType==='draft'?false:(document.getElementById('adminSongPublish')?document.getElementById('adminSongPublish').checked:true);
   if(!title){showToast('Please enter a song title.');return;}
   const btn=document.getElementById('saveSongBtn');
@@ -2558,22 +2547,10 @@ window.adminSaveSong=async(saveType)=>{
     }
     status.textContent='Saving to database...';
     if(S.editingId){
-      try {
-        await updateDoc(doc(db,'songs',S.editingId),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,visibleTo,published});
-        alert('Firestore UPDATE success\nid: ' + S.editingId + '\nvisibleTo written: ' + JSON.stringify(visibleTo));
-      } catch(e){
-        alert('Firestore UPDATE FAILED\ncode: ' + (e.code||'(none)') + '\nmessage: ' + (e.message||'unknown'));
-        throw e;
-      }
+      await updateDoc(doc(db,'songs',S.editingId),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,visibleTo,published});
       showToast(`"${title}" updated!`); cancelEditSong(); await fetchAll();
     } else {
-      try {
-        await addDoc(collection(db,'songs'),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,visibleTo,published,createdAt:serverTimestamp()});
-        alert('Firestore CREATE success\nvisibleTo written: ' + JSON.stringify(visibleTo));
-      } catch(e){
-        alert('Firestore CREATE FAILED\ncode: ' + (e.code||'(none)') + '\nmessage: ' + (e.message||'unknown'));
-        throw e;
-      }
+      await addDoc(collection(db,'songs'),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,visibleTo,published,createdAt:serverTimestamp()});
       showToast(published?`"${title}" published!`:`"${title}" saved as draft!`); await fetchAll(true);
       document.getElementById('adminSongTitle').value='';
       if(document.getElementById('adminSongPDF')) document.getElementById('adminSongPDF').value='';
@@ -3550,14 +3527,6 @@ function renderResourcesPage(){
     return;
   }
   const classGrp=S.student.classGroup||'';
-  // TEMP debug alert — fires once per page session for the first song in
-  // S.songs so admin can see live what visibleTo looks like and what the
-  // student category resolves to. Remove once verified.
-  if(!window._vtFilterAlerted && S.songs.length>0){
-    window._vtFilterAlerted=true;
-    const s=S.songs[0];
-    alert('Filter check: ' + (s.title||'(no title)') + ' visibleTo=' + JSON.stringify(s.visibleTo) + ' studentCat=' + JSON.stringify(cat));
-  }
   // Visibility filter — defensive against every data shape `visibleTo` might
   // arrive in: Array (normal), comma-separated string (legacy/edge), null,
   // undefined, missing field. Comparisons are case- and whitespace-tolerant
@@ -5863,7 +5832,6 @@ window.handleSongPDF=async(input)=>{
       }
 
       const finalUrl=GITHUB_PAGES_BASE+safeName;
-      console.log('[handleSongPDF] commit ok, setting adminSongPDF.value =', finalUrl);
       if(pdfInput) pdfInput.value=finalUrl;
       if(statusEl){
         statusEl.textContent=`✓ Committed ${safeName} — GitHub Pages will serve it in ~30–60s`;
