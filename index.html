@@ -2234,19 +2234,31 @@ window.openPart=(songId,partRef)=>{
   const p=typeof partRef==='number' ? parts[partRef] : parts.find(x=>x.name===partRef);
   if(!p){ showToast('Part not found.'); return; }
   if(!p.url){ showToast('No file attached to this part yet.'); return; }
-  // PDFs and Cloudinary raw uploads (which may have no .pdf extension on
-  // the URL) get opened in a new browser tab — the native PDF viewer
-  // handles rendering. Everything else uses the inline part modal which
-  // knows how to play audio / video / show images.
-  const cleanUrl=p.url.split('?')[0].toLowerCase();
-  const isPdfLike=p.type==='pdf'
-    || cleanUrl.endsWith('.pdf')
-    || cleanUrl.includes('.pdf')
-    || cleanUrl.includes('/raw/upload/');
-  if(isPdfLike){
-    window.open(p.url, '_blank', 'noopener,noreferrer');
-  } else {
-    window.openPartModal(songId, p.name, p.url);
+  // Routing by Cloudinary resource type segment:
+  //   /raw/upload/    → new tab (PDFs / arbitrary files)
+  //   /video/upload/  → in-page modal player (Cloudinary stores both video
+  //                     and audio under /video/upload/)
+  //   /image/upload/  → new tab
+  //   anything else   → new tab (GitHub-hosted PDFs, external links, etc.)
+  const url=p.url;
+  const lowerUrl=url.toLowerCase();
+  const isCloudinary=lowerUrl.includes('cloudinary.com');
+  const isVideoUpload=lowerUrl.includes('/video/upload/');
+  if(isCloudinary && isVideoUpload){
+    window.openPartModal(songId, p.name, url);
+    return;
+  }
+  window.open(url, '_blank', 'noopener,noreferrer');
+  // For Cloudinary assets, fire a background HEAD to detect 401s caused by
+  // files uploaded as authenticated/private (a known historical bug).
+  // Fire-and-forget — the new tab is already open; we only add a toast if
+  // the file genuinely isn't publicly accessible.
+  if(isCloudinary){
+    fetch(url,{method:'HEAD'}).then(res=>{
+      if(res.status===401){
+        showToast('File is not publicly accessible. Please re-upload this file in Admin.');
+      }
+    }).catch(()=>{ /* CORS or offline — can't determine; stay quiet */ });
   }
 };
 
