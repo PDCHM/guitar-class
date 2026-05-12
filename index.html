@@ -2755,9 +2755,11 @@ function renderCatSelect(){
 // ── ADMIN UPLOADS ─────────────────────────────────────────────────────────────
 function renderAdminUploads(){
   const wrap=document.getElementById('adminUploadsWrap'); if(!wrap)return;
-  if(!S.uploads.length){wrap.innerHTML='<p style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">No submissions yet.</p>';return;}
-  // Sort by newest first — support both createdAt and submittedAt
-  const sorted=[...S.uploads].sort((a,b)=>{
+  // Text posts (type:'post') live in `uploads` alongside videos but they're
+  // not actual recordings to review — filter them out here.
+  const recordings=S.uploads.filter(u=>u.type!=='post');
+  if(!recordings.length){wrap.innerHTML='<p style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">No submissions yet.</p>';return;}
+  const sorted=[...recordings].sort((a,b)=>{
     const ta=(b.createdAt?.seconds||b.submittedAt?.seconds||0);
     const tb=(a.createdAt?.seconds||a.submittedAt?.seconds||0);
     return ta-tb;
@@ -3417,7 +3419,8 @@ window.switchLearnerTab=(tab,el)=>{
 
 function renderLearnerMySubmissions(){
   const el=document.getElementById('learnerMySubmissions'); if(!el||!S.student)return;
-  const mine=S.uploads.filter(u=>u.studentId===S.student.id||u.submittedBy===S.student.name);
+  // Text posts go in the Class Feed; the "My Submissions" tab is for actual videos.
+  const mine=S.uploads.filter(u=>(u.studentId===S.student.id||u.submittedBy===S.student.name) && u.type!=='post');
   if(!mine.length){el.innerHTML='<p style="color:var(--muted);font-size:13px;">No submissions yet. Upload your first video above!</p>';return;}
   el.innerHTML=mine.map(u=>`
     <div class="upload-item" style="margin-bottom:8px;flex-direction:column;align-items:flex-start;gap:10px;">
@@ -3563,6 +3566,21 @@ function renderResourcesPage(){
     list.sort((a,b)=>S_resSortDir*(a.category||'').localeCompare(b.category||''));
   } else {
     list.sort((a,b)=>S_resSortDir*a.title.localeCompare(b.title));
+  }
+  // In-page diagnostic strip — small grey line so admin/student can verify
+  // the filter state live without opening DevTools. Shows how many of all
+  // published songs ended up visible and what category was used.
+  const totalPublished=S.songs.filter(s=>s.published!==false).length;
+  const grid=document.getElementById('resourcesGrid');
+  if(grid && grid.parentElement){
+    let diagEl=document.getElementById('resourcesFilterDiag');
+    if(!diagEl){
+      diagEl=document.createElement('div');
+      diagEl.id='resourcesFilterDiag';
+      diagEl.style.cssText='font-size:11px;color:var(--muted);margin-bottom:8px;opacity:0.7;';
+      grid.parentElement.insertBefore(diagEl, grid);
+    }
+    diagEl.textContent=`${list.length} of ${totalPublished} resources visible · your category: "${cat}"`;
   }
   // Build category filter pills
   const cats=[...new Set(list.map(s=>s.category).filter(Boolean))];
@@ -3892,7 +3910,7 @@ function renderAdminStudents(){
     return aPending-bPending;
   });
   el.innerHTML=sorted.map(s=>{
-    const submissions=S.uploads.filter(u=>u.studentId===s.id||u.submittedBy===s.name);
+    const submissions=S.uploads.filter(u=>(u.studentId===s.id||u.submittedBy===s.name) && u.type!=='post');
     const lessons=[...new Set(submissions.map(u=>u.lesson).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
     const isGoogle=s.signInMethod==='google';
     const initials=(s.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -4911,7 +4929,8 @@ const BADGE_DEFS=[
 ];
 
 function computeBadges(student, uploads, logs){
-  const mine=uploads.filter(u=>u.studentId===student.id||u.submittedBy===student.name);
+  // Badges count actual video/audio submissions only — text posts don't qualify.
+  const mine=uploads.filter(u=>(u.studentId===student.id||u.submittedBy===student.name) && u.type!=='post');
   const earned=new Set(student.badges||[]);
   if(mine.length>=1) earned.add('first_sub');
   if(mine.length>=5) earned.add('sub5');
@@ -4972,9 +4991,9 @@ async function renderProgressTab(){
       </div>
     </div>`;
 
-  // Stats
+  // Stats — "Videos submitted" counts only actual submissions, not text posts.
   const statsEl=document.getElementById('progressStats'); if(!statsEl)return;
-  const mine=S.uploads.filter(u=>u.studentId===S.student.id||u.submittedBy===S.student.name);
+  const mine=S.uploads.filter(u=>(u.studentId===S.student.id||u.submittedBy===S.student.name) && u.type!=='post');
   const totalMins=logs.reduce((s,l)=>s+(l.duration||0),0);
   statsEl.innerHTML=`
     <div class="stat-card"><div class="stat-num">${mine.length}</div><div class="stat-label">Videos submitted</div></div>
@@ -5585,8 +5604,8 @@ window.deleteChallenge=async(id)=>{
 async function renderLeaderboard(){
   const el=document.getElementById('leaderboardStrip'); if(!el)return;
   const studentCat=S.student?.category||'';
-  // Count submissions per student in same category
-  const uploads=S.uploads.filter(u=>!studentCat||!u.category||u.category===studentCat);
+  // Count submissions per student in same category — text posts don't count toward the leaderboard.
+  const uploads=S.uploads.filter(u=>(!studentCat||!u.category||u.category===studentCat) && u.type!=='post');
   const counts={};
   uploads.forEach(u=>{
     const name=u.submittedBy||'Unknown';
@@ -5906,14 +5925,16 @@ function setLearnerGreeting(){
   else if(ca instanceof Date) createdMs=ca.getTime();
   else if(typeof ca==='string'){ const d=new Date(ca); if(!isNaN(d)) createdMs=d.getTime(); }
   const justJoined = createdMs && (Date.now()-createdMs) < 5*60*1000;
-  const mine=(S.uploads||[]).filter(u=>u.studentId===S.student.id||u.submittedBy===S.student.name);
+  // "Welcome back" is keyed off real submissions only — text posts don't make someone "returning".
+  const mine=(S.uploads||[]).filter(u=>(u.studentId===S.student.id||u.submittedBy===S.student.name) && u.type!=='post');
   const isFirstTime = justJoined || mine.length===0;
   el.textContent = isFirstTime ? 'Welcome!' : 'Welcome back,';
 }
 
 function renderQuickStats(){
   const el=document.getElementById('learnerQuickStats'); if(!el||!S.student)return;
-  const mine=S.uploads.filter(u=>u.studentId===S.student.id||u.submittedBy===S.student.name);
+  // "Videos" badge in the welcome header — text posts don't count.
+  const mine=S.uploads.filter(u=>(u.studentId===S.student.id||u.submittedBy===S.student.name) && u.type!=='post');
   const completedLessons=(S.student.completedLessons||[]).length;
   // Match the Progress tab — totals are scoped to the student's category.
   const totalLessons=lessonLabelsForCategory(S.student.category).count;
