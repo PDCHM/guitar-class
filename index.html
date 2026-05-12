@@ -757,7 +757,7 @@
     <div class="modal" style="max-width:380px;">
       <div class="modal-header">
         <h3 class="modal-title" style="display:flex;align-items:center;gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Graduate Season</h3>
-        <button class="modal-close" onclick="closeModal('graduateModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+        <button class="modal-close" onclick="closeModal('graduateModal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
       </div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;" id="graduateModalSub">Season 1 will be archived. Choose what to do with facilitators:</p>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
@@ -795,7 +795,7 @@
     <div class="modal" style="max-width:420px;max-height:80vh;overflow-y:auto;">
       <div class="modal-header">
         <h3 class="modal-title" id="archiveViewTitle">Season Archive</h3>
-        <button class="modal-close" onclick="closeModal('archiveViewModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+        <button class="modal-close" onclick="closeModal('archiveViewModal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
       </div>
       <div id="archiveViewContent"></div>
     </div>
@@ -866,7 +866,7 @@
   <div class="modal">
     <div class="modal-header">
       <h3 class="modal-title">Admin Login</h3>
-      <button class="modal-close" onclick="closeModal('loginModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+      <button class="modal-close" onclick="closeModal('loginModal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
     <div class="form-group">
       <label class="form-label">Password</label>
@@ -881,7 +881,7 @@
   <div class="modal">
     <div class="modal-header">
       <h3 class="modal-title" id="partModalTitle">Voice Part</h3>
-      <button class="modal-close" onclick="closeModal('partModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+      <button class="modal-close" onclick="closeModal('partModal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
     <div id="partModalContent"></div>
   </div>
@@ -892,7 +892,7 @@
   <div class="modal">
     <div class="modal-header">
       <h3 class="modal-title">Edit Profile</h3>
-      <button class="modal-close" onclick="closeModal('profileModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+      <button class="modal-close" onclick="closeModal('profileModal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:18px;">
       <div id="profilePhotoPreview" style="width:80px;height:80px;border-radius:50%;background:rgba(3,146,207,0.15);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--accent);overflow:hidden;flex-shrink:0;"></div>
@@ -1332,7 +1332,7 @@
   <div class="modal" style="max-width:560px;">
     <div class="modal-header">
       <h3 class="modal-title" id="progressionModalTitle">Add Chord Progression</h3>
-      <button class="modal-close" onclick="closeModal('progressionModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+      <button class="modal-close" onclick="closeModal('progressionModal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
     <div class="form-group">
       <label class="form-label">Name</label>
@@ -1404,8 +1404,9 @@
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);">
       <span id="pdfModalTitle" style="font-size:14px;font-weight:500;color:var(--text);"></span>
       <div style="display:flex;gap:8px;align-items:center;">
-        <a id="pdfDownloadLink" href="#" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:12px;">⬇ Download</a>
-        <button class="modal-close" onclick="closeModal('pdfModal')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+        <a id="pdfOpenLink" href="#" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open in new tab</a>
+        <a id="pdfDownloadLink" href="#" target="_blank" download class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Download</a>
+        <button class="modal-close" onclick="closeModal('pdfModal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
       </div>
     </div>
     <iframe id="pdfFrame" style="flex:1;border:none;min-height:70vh;" src=""></iframe>
@@ -2686,7 +2687,7 @@ function renderAdminUploads(){
         ${u.url?`<a href="${u.url}" target="_blank" class="btn btn-ghost btn-sm"<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:-1px;"><path d="M8 5v14l11-7z"/></svg>Play</a>`:''}
         ${u.status!=='approved'?`<button class="btn btn-ghost btn-sm" onclick="window.approveUpload('${u.id}')">Approve</button>`:''}
         ${u.url?`<a href="${u.url}" target="_blank" class="btn btn-ghost btn-sm">↓ Download</a>`:''}
-        <button class="btn btn-danger btn-sm" onclick="window.deleteUpload('${u.id}')"<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="margin-right:4px;vertical-align:-1px;"><path d="M6 18L18 6M6 6l12 12"/></svg>Delete</button>
+        <button class="btn btn-danger btn-sm" onclick="window.deleteUpload('${u.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="margin-right:4px;vertical-align:-1px;"><path d="M6 18L18 6M6 6l12 12"/></svg>Delete</button>
       </div>
       <div style="background:var(--surface2);border-radius:8px;padding:10px;">
         <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">
@@ -2740,7 +2741,7 @@ function renderPartRows(){
       <input class="form-input" style="width:80px;padding:5px 8px;font-size:12px" value="${p.name}" onchange="_S.partRows[${i}].name=this.value" placeholder="File">
       <span class="part-file-name">${p.file?p.file.name:(p.url?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px;vertical-align:-1px;color:var(--success);"><path d="M20 6L9 17l-5-5"/></svg>saved':'No file')}</span>
       <label class="part-upload-btn">Upload<input type="file" accept="*/*" style="display:none" onchange="partFile(${i},this)"></label>
-      <button style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px" onclick="_S.partRows.splice(${i},1);window.renderPR()"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+      <button style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px" onclick="_S.partRows.splice(${i},1);window.renderPR()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>`).join('');
 }
 
@@ -4562,7 +4563,7 @@ function renderAdminAnnouncements(){
         <div style="font-size:11px;color:var(--muted);margin-top:2px;">${a.body.slice(0,80)}${a.body.length>80?'...':''}</div>
         <div style="font-size:10px;color:var(--muted);margin-top:3px;">${a.audience==='all'?'All students':a.audience+' only'}</div>
       </div>
-      <button class="btn btn-danger btn-sm" onclick="window.deleteAnnouncement('${a.id}')"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+      <button class="btn btn-danger btn-sm" onclick="window.deleteAnnouncement('${a.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>`).join('');
 }
 
@@ -5474,9 +5475,22 @@ setTimeout(() => renderVideoLinks(), 500);
 window.openPdfViewer=(url,title)=>{
   if(!url){showToast('No PDF available.');return;}
   document.getElementById('pdfModalTitle').textContent=title||'Document';
-  document.getElementById('pdfDownloadLink').href=url;
-  // Use Google Docs viewer as fallback for cross-origin PDFs
-  const viewUrl=url.startsWith('http')?`https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`:url;
+  // Both action buttons always point at the direct URL — never the Google
+  // Docs wrapper — so download and open-in-tab work regardless of how the
+  // iframe renders.
+  const dl=document.getElementById('pdfDownloadLink');
+  const open=document.getElementById('pdfOpenLink');
+  if(dl) dl.href=url;
+  if(open) open.href=url;
+  // Render directly in the iframe for hosts that serve PDFs with proper
+  // Content-Type + permissive CORS (Cloudinary does both, modern browsers
+  // render PDFs inline). Fall back to Google Docs viewer only for other
+  // remote URLs which may have CORS or framing restrictions.
+  const isCloudinary = /(^|\.)cloudinary\.com/.test(url) || /res\.cloudinary\.com/.test(url);
+  const isLocal = url.startsWith('blob:') || url.startsWith('data:') || !url.startsWith('http');
+  const viewUrl = (isCloudinary || isLocal)
+    ? url
+    : `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
   document.getElementById('pdfFrame').src=viewUrl;
   openModal('pdfModal');
 };
