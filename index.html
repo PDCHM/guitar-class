@@ -1162,6 +1162,13 @@
 
     <!-- Class Feed tab -->
     <div id="lpanel-all" style="display:none;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:16px;">
+        <textarea id="classFeedPostText" rows="2" class="form-input" placeholder="Share something with your class..." style="resize:vertical;margin-bottom:8px;"></textarea>
+        <input id="classFeedPostLink" type="url" class="form-input" placeholder="Optional YouTube or video link" style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:flex-end;">
+          <button class="btn btn-primary btn-sm" id="classFeedPostBtn" onclick="window.submitClassFeedPost()">Post</button>
+        </div>
+      </div>
       <div id="learnerAllSubmissions"><div class="loading"><div class="spinner"></div> Loading...</div></div>
     </div>
 
@@ -3435,24 +3442,38 @@ function renderLearnerAllSubmissions(){
   const el=document.getElementById('learnerAllSubmissions'); if(!el)return;
   const studentCat=S.student?.category||'';
   let all=S.uploads.slice().sort((a,b)=>(b.submittedAt?.seconds||b.createdAt?.seconds||0)-(a.submittedAt?.seconds||a.createdAt?.seconds||0));
-  // Filter to same category only if student has one
   if(studentCat) all=all.filter(u=>!u.category||u.category===studentCat);
   if(!all.length){
-    el.innerHTML='<p style="color:var(--muted);font-size:13px;">No class submissions yet — be the first to submit a video!</p>';
+    el.innerHTML='<p style="color:var(--muted);font-size:13px;">No class posts yet — be the first!</p>';
     return;
   }
-  el.innerHTML=all.map(u=>`
+  el.innerHTML=all.map(u=>{
+    const name=u.submittedBy||u.studentName||'Student';
+    const initials=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const ts=u.submittedAt||u.createdAt;
+    const dateStr=ts?.seconds?new Date(ts.seconds*1000).toLocaleDateString('en-SG',{day:'numeric',month:'short'}):'';
+    const meta=u.type==='post'?dateStr:`${u.lesson||u.part||''}${u.lesson||u.part?' · ':''}${dateStr}`;
+    let body='';
+    if(u.type==='post'){
+      const textHtml=u.text?`<div style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;margin-bottom:${u.linkUrl?'8px':'0'};">${u.text}</div>`:'';
+      const linkHtml=u.linkUrl?`<a href="${u.linkUrl}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>${u.linkUrl}</a>`:'';
+      body=textHtml+linkHtml;
+    } else {
+      body=u.url?`<a href="${u.url}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Play</a>`:'';
+    }
+    return `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-        <div style="width:32px;height:32px;border-radius:50%;background:rgba(3,146,207,0.15);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;">${(u.submittedBy||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(3,146,207,0.15);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;">${initials}</div>
         <div style="flex:1;">
-          <div style="font-size:13px;font-weight:500;color:var(--text);">${u.submittedBy||'Student'}</div>
-          <div style="font-size:11px;color:var(--muted);">${u.lesson||u.part||''} · ${u.submittedAt?new Date(u.submittedAt.seconds*1000).toLocaleDateString('en-SG',{day:'numeric',month:'short'}):''}</div>
+          <div style="font-size:13px;font-weight:500;color:var(--text);">${name}</div>
+          <div style="font-size:11px;color:var(--muted);">${meta}</div>
         </div>
-        ${u.url?`<a href="${u.url}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;"<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;vertical-align:-1px;"><path d="M8 5v14l11-7z"/></svg>Play</a>`:''}
       </div>
-      ${(u.facFeedback&&u.facFeedback.length)?`<div style="font-size:12px;color:var(--muted);padding-top:6px;border-top:1px solid var(--border);">${u.facFeedback.map(f=>`<span style="color:var(--accent2);font-weight:500;">${f.name}:</span> ${f.text}`).join(' · ')}</div>`:''}
-    </div>`).join('');
+      ${body}
+      ${(u.facFeedback&&u.facFeedback.length)?`<div style="font-size:12px;color:var(--muted);padding-top:6px;margin-top:8px;border-top:1px solid var(--border);">${u.facFeedback.map(f=>`<span style="color:var(--accent2);font-weight:500;">${f.name}:</span> ${f.text}`).join(' · ')}</div>`:''}
+    </div>`;
+  }).join('');
 }
 
 // ── MY RESOURCES PAGE ─────────────────────────────────────────────────────────
@@ -3609,6 +3630,41 @@ window.handleLearnerFile=(input)=>{
     S.pendingLearnerFile=input.files[0];
     document.getElementById('learnerDropTitle').textContent=input.files[0].name;
   }
+};
+
+// Text/link post from the Class Feed input. Lives in the same `uploads`
+// collection as video submissions but tagged type:'post' so renderers and
+// stats can distinguish them.
+window.submitClassFeedPost=async()=>{
+  if(!S.student){ showToast('Please sign in first.'); return; }
+  const textEl=document.getElementById('classFeedPostText');
+  const linkEl=document.getElementById('classFeedPostLink');
+  const text=(textEl?.value||'').trim();
+  const linkUrl=(linkEl?.value||'').trim();
+  if(!text && !linkUrl){ showToast('Type something or paste a link first.'); return; }
+  const btn=document.getElementById('classFeedPostBtn');
+  if(btn){ btn.disabled=true; btn.textContent='Posting…'; }
+  try{
+    await addDoc(collection(db,'uploads'),{
+      type:'post',
+      text, linkUrl,
+      submittedBy:S.student.name,
+      studentId:S.student.id,
+      studentName:S.student.name,
+      category:S.student.category||'',
+      classGroup:S.student.classGroup||'',
+      createdAt:serverTimestamp(),
+      submittedAt:serverTimestamp(),
+    });
+    if(textEl) textEl.value='';
+    if(linkEl) linkEl.value='';
+    showToast('Posted to Class Feed.');
+    // Realtime listener will refresh both feeds; no manual call needed.
+  }catch(e){
+    console.error('submitClassFeedPost failed:', e);
+    showToast('Could not post: '+(e.message||'unknown error'));
+  }
+  if(btn){ btn.disabled=false; btn.textContent='Post'; }
 };
 
 window.submitLearnerVideo=async()=>{
@@ -4770,9 +4826,12 @@ function renderCommunityFeed(){
           <div style="font-size:11px;color:var(--muted);">${u.lesson||u.part||''} · ${u.submittedAt?new Date(u.submittedAt.seconds*1000).toLocaleDateString('en-SG',{day:'numeric',month:'short'}):u.createdAt?new Date(u.createdAt.seconds*1000).toLocaleDateString('en-SG',{day:'numeric',month:'short'}):''}</div>
         </div>
       </div>
-      <!-- Video -->
-      ${u.url?`<video controls playsinline style="width:100%;max-height:260px;background:#000;display:block;" src="${u.url}"></video>`:''}
-      ${u.note?`<div style="padding:8px 16px;font-size:12px;color:var(--muted);font-style:italic;">"${u.note}"</div>`:''}
+      <!-- Body: text+link for posts, video for submissions -->
+      ${u.type==='post'
+        ? (u.text?`<div style="padding:0 16px 8px;font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;">${u.text}</div>`:'')
+          + (u.linkUrl?`<div style="padding:0 16px 10px;"><a href="${u.linkUrl}" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent2);text-decoration:none;word-break:break-all;display:inline-flex;align-items:center;gap:5px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>${u.linkUrl}</a></div>`:'')
+        : (u.url?`<video controls playsinline style="width:100%;max-height:260px;background:#000;display:block;" src="${u.url}"></video>`:'')
+          + (u.note?`<div style="padding:8px 16px;font-size:12px;color:var(--muted);font-style:italic;">"${u.note}"</div>`:'')}
       <!-- Actions bar -->
       <div style="padding:10px 16px;display:flex;align-items:center;gap:16px;border-top:1px solid var(--border);">
         <button onclick="window.toggleLike('${u.id}')" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:${hasLiked?'var(--accent)':'var(--muted)'};">
