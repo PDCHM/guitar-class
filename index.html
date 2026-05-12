@@ -1478,11 +1478,6 @@ async function uploadToCloudinary(file, onProgress) {
     if(file.type.startsWith('image/')) resourceType = 'image';
     else if(file.type.startsWith('video/') || file.type.startsWith('audio/')) resourceType = 'video';
     fd.append('resource_type', resourceType);
-    // Force public, browsable delivery — both are Cloudinary defaults for
-    // unsigned uploads, but stating them explicitly guards against the
-    // preset being changed in Cloudinary Console.
-    fd.append('type', 'upload');
-    fd.append('access_mode', 'public');
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`);
     xhr.upload.onprogress = e => { if(e.lengthComputable && onProgress) onProgress(Math.round(e.loaded/e.total*100)); };
