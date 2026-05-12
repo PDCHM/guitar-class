@@ -462,27 +462,18 @@
       </div>
       <div class="progress-bar" id="songProgress"><div class="progress-fill" id="songFill"></div></div>
       <div id="songStatus" style="font-size:12px;color:var(--muted);margin-top:6px;display:none;"></div>
-      <div style="display:flex;gap:8px;margin-top:10px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:10px;">
-          <div>
-            <div style="font-size:13px;font-weight:500;color:var(--text);">Publish to Library</div>
-            <div style="font-size:11px;color:var(--muted);">Members can see this resource</div>
-          </div>
-          <label style="display:flex;align-items:center;cursor:pointer;gap:8px;">
-            <input type="checkbox" id="adminSongPublish" checked style="display:none;">
-            <div id="publishToggle" onclick="this.classList.toggle('on');const c=this.classList.contains('on');document.getElementById('adminSongPublish').checked=c;this.style.background=c?'var(--accent)':'var(--surface2)';this.querySelector('div').style.left=c?'23px':'3px';" style="width:44px;height:24px;border-radius:12px;background:var(--accent);position:relative;cursor:pointer;transition:background .2s;" class="on">
-              <div id="publishToggleDot" style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:23px;transition:left .2s;"></div>
-            </div>
-          </label>
-        </div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-ghost" style="flex:1" id="saveDraftBtn" onclick="window.adminSaveSong('draft')">Save as Draft</button>
-          <button class="btn btn-primary" style="flex:1" id="saveSongBtn" onclick="window.adminSaveSong()">Save</button>
-        </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-direction:column;">
+        <button class="btn btn-primary" style="width:100%;" id="saveSongBtn" onclick="window.adminSaveSong()">Save</button>
         <button class="btn btn-ghost btn-sm" id="cancelEditBtn" style="display:none" onclick="cancelEditSong()">Cancel</button>
       </div>
       <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
-        <div id="sec-songlist" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><h3 style="font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;margin:0;">Resource List</h3><button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button></div>
+        <div id="sec-songlist" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap;">
+          <h3 style="font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;margin:0;">Resource List</h3>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button onclick="window.publishAllSongs()" class="btn btn-primary btn-sm">Publish All</button>
+            <button class="admin-top-btn" onclick="window.scrollToSec('page-admin')" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button>
+          </div>
+        </div>
         <div id="adminSongList"><div class="loading"><div class="spinner"></div> Loading...</div></div>
       </div>
     </div>
@@ -2479,7 +2470,7 @@ window.handleSongVideo = async (input) => {
   }
 };
 
-window.adminSaveSong=async(saveType)=>{
+window.adminSaveSong=async()=>{
   // Wait for any in-flight PDF upload to finish before reading inputs.
   // Without this, clicking Save mid-upload caused pdfUrl:'' to be written
   // to Firestore even though the upload eventually succeeded.
@@ -2495,7 +2486,8 @@ window.adminSaveSong=async(saveType)=>{
   const yt=videoLinks.length?videoLinks[0].url:'';
   const pdfUrl=document.getElementById('adminSongPDF')?.value.trim()||'';
   const lesson=document.getElementById('adminSongLesson').value||'';
-  const published=saveType==='draft'?false:(document.getElementById('adminSongPublish')?document.getElementById('adminSongPublish').checked:true);
+  // Every save publishes immediately — drafts feature removed.
+  const published=true;
   if(!title){showToast('Please enter a song title.');return;}
   const btn=document.getElementById('saveSongBtn');
   const fill=document.getElementById('songFill');
@@ -2523,7 +2515,7 @@ window.adminSaveSong=async(saveType)=>{
       showToast(`"${title}" updated!`); cancelEditSong(); await fetchAll(true);
     } else {
       await addDoc(collection(db,'songs'),{title,category:cat,youtubeUrl:yt,videoLinks,pdfUrl,lesson,parts,published,createdAt:serverTimestamp()});
-      showToast(published?`"${title}" published!`:`"${title}" saved as draft!`); await fetchAll(true);
+      showToast(`"${title}" published!`); await fetchAll(true);
       document.getElementById('adminSongTitle').value='';
       if(document.getElementById('adminSongPDF')) document.getElementById('adminSongPDF').value='';
       document.getElementById('adminSongLesson').value='';
@@ -2551,7 +2543,6 @@ window.editSong=id=>{
   }
   renderVideoLinks();
   document.getElementById('adminSongCat').value=s.category||'';
-  const pt=document.getElementById('publishToggle');const pc=document.getElementById('adminSongPublish');if(pt&&pc){const pub=s.published!==false;pc.checked=pub;pub?pt.classList.add('on'):pt.classList.remove('on');pt.style.background=pub?'var(--accent)':'var(--surface2)';pt.querySelector('div').style.left=pub?'23px':'3px';}
   S.partRows=(s.parts||[]).map(p=>({name:p.name,file:null,url:p.url}));
   renderPartRows();
   document.getElementById('songFormTitle').textContent='Edit Resource';
@@ -2584,6 +2575,24 @@ window.deleteSong=async id=>{
   await deleteDoc(doc(db,'songs',id));
   if(S.editingId===id) cancelEditSong();
   showToast('Song deleted.'); await fetchAll(true);
+};
+
+// One-shot helper to flip every song's published flag to true — useful
+// after migrating data with old drafts or missing published field.
+window.publishAllSongs=async()=>{
+  if(!S.songs||!S.songs.length){ showToast('No songs to publish.'); return; }
+  if(!confirm(`Publish all ${S.songs.length} resources?`)) return;
+  let done=0;
+  try{
+    for(const s of S.songs){
+      await updateDoc(doc(db,'songs',s.id),{published:true});
+      done++;
+    }
+    showToast(`All ${done} resources published!`);
+    await fetchAll(true);
+  }catch(e){
+    showToast(`Published ${done} of ${S.songs.length} before error: ${e.message||'unknown'}`);
+  }
 };
 
 window.renderAdminSongList=function renderAdminSongList(){
