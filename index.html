@@ -5481,25 +5481,40 @@ window.openPdfViewer=(url,title)=>{
   openModal('pdfModal');
 };
 
-// Admin: upload PDF to Cloudinary
+// Admin: upload PDF to Cloudinary.
+// Uses the shared uploadToCloudinary helper (same one used for videos and
+// other media) — auto-detects resource_type=raw for application/pdf and
+// reports real upload progress via XHR.
 window.handleSongPDF=async(input)=>{
-  const file=input.files[0]; if(!file)return;
+  const file=input.files[0];
+  if(!file) return;
   const statusEl=document.getElementById('pdfUploadStatus');
   const pdfInput=document.getElementById('adminSongPDF');
-  statusEl.textContent='Uploading PDF...'; statusEl.style.display='block';
+  if(statusEl){
+    statusEl.style.display='block';
+    statusEl.textContent=`Uploading ${file.name}...`;
+  }
   try{
-    const fd=new FormData();
-    fd.append('file',file);
-    fd.append('upload_preset',UPLOAD_PRESET);
-    fd.append('resource_type','raw');
-    const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/raw/upload`,{method:'POST',body:fd});
-    const data=await res.json();
-    if(data.secure_url){
-      if(pdfInput) pdfInput.value=data.secure_url;
-      statusEl.textContent='PDF uploaded!';
-      setTimeout(()=>{statusEl.style.display='none';},2000);
-    } else throw new Error(data.error?.message||'Upload failed');
-  }catch(e){statusEl.textContent='Error: '+e.message;}
+    const url=await uploadToCloudinary(file, pct=>{
+      if(statusEl) statusEl.textContent=`Uploading ${file.name}... ${pct}%`;
+    });
+    if(pdfInput) pdfInput.value=url;
+    if(statusEl){
+      statusEl.textContent=`✓ PDF uploaded (${file.name})`;
+      setTimeout(()=>{ if(statusEl) statusEl.style.display='none'; },2500);
+    }
+    showToast('PDF uploaded — URL filled in.');
+    // Clear the file input so picking the same file again still fires onchange
+    input.value='';
+  }catch(e){
+    console.error('PDF upload failed:', e);
+    if(statusEl){
+      statusEl.textContent='Upload failed: '+(e.message||'Unknown error');
+      statusEl.style.color='var(--danger)';
+    }
+    showToast('PDF upload failed: '+(e.message||'Unknown error'));
+    input.value='';
+  }
 };
 
 // ── QUICK STATS (welcome header) ──────────────────────────────────────────────
