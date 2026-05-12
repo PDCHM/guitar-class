@@ -962,6 +962,15 @@
     <div id="authLoginForm2" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;">
       <h2 style="font-size:22px;margin-bottom:6px;">Welcome back</h2>
       <p style="font-size:13px;color:var(--muted);margin-bottom:22px;">Sign in to access your learning space</p>
+      <button id="googleSignInBtn" onclick="window.signInWithGoogle()" style="width:100%;padding:11px 16px;background:#fff;border:1px solid #dadce0;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#3c4043;transition:box-shadow .2s,background .2s;" onmouseover="this.style.background='#f8f9fa';this.style.boxShadow='0 1px 3px rgba(60,64,67,0.15)';" onmouseout="this.style.background='#fff';this.style.boxShadow='none';">
+        <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+        Continue with Google
+      </button>
+      <div style="display:flex;align-items:center;gap:10px;margin:18px 0;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">or sign in with email</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
       <div class="form-group">
         <label class="form-label">Email</label>
         <input class="form-input" type="email" id="loginEmail2" placeholder="you@email.com" onkeydown="if(event.key==='Enter')window.studentLogin2()">
@@ -971,7 +980,7 @@
         <input class="form-input" type="password" id="loginPassword2" placeholder="••••••••" onkeydown="if(event.key==='Enter')window.studentLogin2()">
       </div>
       <div id="loginError2" style="font-size:12px;color:var(--danger);margin-bottom:10px;display:none;"></div>
-      <button class="btn btn-primary" style="width:100%;padding:10px;" onclick="window.studentLogin2()">Sign In</button>
+      <button class="btn btn-ghost" style="width:100%;padding:10px;" onclick="window.studentLogin2()">Sign in with email</button>
       <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:14px;">Don't have an account? <a href="#" onclick="switchAuthTab('register');return false;" style="color:var(--accent);">Create one</a></p>
     </div>
     <!-- REGISTER FORM -->
@@ -1370,7 +1379,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc, getDocs, getDoc, query, orderBy, where, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CLOUD_NAME = 'dyg9hxapf';
@@ -2910,6 +2919,94 @@ window.studentLogin2=async()=>{
   }
 };
 
+// ── GOOGLE SIGN-IN ────────────────────────────────────────────────────────────
+// Firebase Console setup required:
+//   1. Firebase Console → Authentication → Sign-in method → enable "Google" provider
+//   2. Add the production domain (e.g. pdchm.github.io) under Authorized domains
+//   3. The OAuth consent screen must be configured in Google Cloud Console for the
+//      same project. Without these, sign-in fails with auth/unauthorized-domain or
+//      auth/operation-not-allowed.
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt:'select_account' });
+
+window.signInWithGoogle = async()=>{
+  const errEl = document.getElementById('loginError2');
+  if(errEl){ errEl.style.display='none'; errEl.textContent=''; }
+  S._googleSigningIn = true;
+  const btn = document.getElementById('googleSignInBtn');
+  if(btn){ btn.disabled=true; btn.style.opacity='0.7'; }
+  try{
+    const cred = await signInWithPopup(auth, googleProvider);
+    const user = cred.user;
+    const studentRef = doc(db,'students',user.uid);
+    const snap = await getDoc(studentRef);
+
+    if(!snap.exists()){
+      // First-time Google sign-in — create pending student doc, then sign out.
+      await setDoc(studentRef, {
+        name: user.displayName || (user.email||'').split('@')[0] || 'New student',
+        email: user.email || '',
+        photoUrl: user.photoURL || '',
+        signInMethod: 'google',
+        status: 'pending',
+        createdAt: serverTimestamp()
+      });
+      await signOut(auth);
+      S._googleSigningIn = false;
+      if(btn){ btn.disabled=false; btn.style.opacity='1'; }
+      showToast('Account created! Awaiting teacher approval.');
+      return;
+    }
+
+    const data = snap.data();
+    if(data.status !== 'approved'){
+      // Existing but not yet approved — keep them out.
+      await signOut(auth);
+      S._googleSigningIn = false;
+      if(btn){ btn.disabled=false; btn.style.opacity='1'; }
+      showToast('Your account is still pending approval. Your teacher will activate it soon.');
+      return;
+    }
+
+    // Approved — load profile. Keep the flag set so onAuthStateChanged doesn't
+    // race us; loadStudentProfile sets S.student early which is also a guard.
+    await loadStudentProfile(user.uid);
+    S._googleSigningIn = false;
+    if(btn){ btn.disabled=false; btn.style.opacity='1'; }
+  }catch(e){
+    S._googleSigningIn = false;
+    if(btn){ btn.disabled=false; btn.style.opacity='1'; }
+    console.error('Google sign-in failed:', e);
+    let msg = '';
+    switch(e.code){
+      case 'auth/popup-closed-by-user':
+      case 'auth/cancelled-popup-request':
+      case 'auth/user-cancelled':
+        // User closed the popup deliberately — stay quiet.
+        return;
+      case 'auth/popup-blocked':
+        msg = 'Popup was blocked. Please allow popups for this site and try again.';
+        break;
+      case 'auth/network-request-failed':
+        msg = 'Network error — check your connection and try again.';
+        break;
+      case 'auth/unauthorized-domain':
+        msg = 'This domain is not authorised for Google sign-in. Contact your admin.';
+        break;
+      case 'auth/operation-not-allowed':
+        msg = 'Google sign-in is not enabled. Contact your admin.';
+        break;
+      case 'auth/account-exists-with-different-credential':
+        msg = 'This email is already registered with a password. Sign in with email below.';
+        break;
+      default:
+        msg = e.message || 'Google sign-in failed. Please try again.';
+    }
+    if(errEl){ errEl.textContent = msg; errEl.style.display = 'block'; }
+    else showToast(msg);
+  }
+};
+
 // Register from learner gate
 window.studentRegister2=async()=>{
   const name=document.getElementById('regName2').value.trim();
@@ -3058,6 +3155,7 @@ async function loadStudentProfile(uid){
 onAuthStateChanged(auth,async user=>{
   if(S.isAdmin) return;
   if(S._registering) return;
+  if(S._googleSigningIn) return; // Google flow owns this auth event
   if(S.student) return; // already loaded
   if(!user) return;    // not logged in via Firebase — do nothing
   // Page refresh with existing Firebase session — reload profile
@@ -3333,15 +3431,29 @@ async function fetchStudents(){
 function renderAdminStudents(){
   const el=document.getElementById('adminStudentList'); if(!el)return;
   if(!S.students||!S.students.length){el.innerHTML='<p style="font-size:13px;color:var(--muted);">No students registered yet.</p>';return;}
-  el.innerHTML=S.students.map(s=>{
+  // Sort: pending students first (so admin sees them immediately), then approved.
+  const sorted=[...S.students].sort((a,b)=>{
+    const aPending=(a.status||'pending')!=='approved'?0:1;
+    const bPending=(b.status||'pending')!=='approved'?0:1;
+    return aPending-bPending;
+  });
+  el.innerHTML=sorted.map(s=>{
     const submissions=S.uploads.filter(u=>u.studentId===s.id||u.submittedBy===s.name);
     const lessons=[...new Set(submissions.map(u=>u.lesson).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+    const isGoogle=s.signInMethod==='google';
+    const initials=(s.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const avatar=s.photoUrl
+      ? `<img src="${s.photoUrl}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div style=\\'width:34px;height:34px;border-radius:50%;background:rgba(3,146,207,0.15);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;\\'>${initials}</div>'" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+      : `<div style="width:34px;height:34px;border-radius:50%;background:rgba(3,146,207,0.15);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;">${initials}</div>`;
+    const googleBadge=isGoogle
+      ? `<span title="Signed in with Google" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#4285F4;color:#fff;font-size:10px;font-weight:700;margin-left:6px;vertical-align:middle;font-family:'DM Sans',sans-serif;">G</span>`
+      : '';
     return `
     <div style="background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <div style="width:34px;height:34px;border-radius:50%;background:rgba(3,146,207,0.15);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;">${(s.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>
+        ${avatar}
         <div style="flex:1;min-width:120px;">
-          <div style="font-size:13px;font-weight:500;color:var(--text);">${s.name||'—'}</div>
+          <div style="font-size:13px;font-weight:500;color:var(--text);">${s.name||'—'}${googleBadge}</div>
           <div style="font-size:11px;color:var(--muted);">${s.email||''} ${s.mobile?'· '+s.mobile:''}</div>
         </div>
         <span style="font-size:10px;padding:2px 8px;border-radius:4px;background:${s.status==='approved'?'rgba(3,146,207,0.1)':'rgba(245,203,98,0.15)'};color:${s.status==='approved'?'var(--success)':'#a07a00'};font-weight:600;">${s.status==='approved'?'Approved':'Pending'}</span>
@@ -3359,10 +3471,15 @@ function renderAdminStudents(){
         <input class="form-input" style="flex:1;min-width:100px;margin-bottom:0;font-size:12px;padding:5px 8px;" placeholder="Class (e.g. Mon 7pm)" value="${s.classGroup||''}" onchange="window.updateStudentField('${s.id}','classGroup',this.value)">
       </div>
       <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;">
-        <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px 8px;">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-          <input type="text" class="form-input" style="border:none;background:transparent;padding:3px 0;font-size:12px;margin-bottom:0;flex:1;" placeholder="Set password" value="${s.adminPassword||''}" onchange="window.updateStudentField('${s.id}','adminPassword',this.value)" title="Password visible to admin only">
-        </div>
+        ${isGoogle
+          ? `<div style="display:flex;align-items:center;gap:6px;flex:1;min-width:160px;background:rgba(66,133,244,0.08);border:1px solid rgba(66,133,244,0.25);border-radius:8px;padding:6px 10px;font-size:11px;color:#1a73e8;">
+              <svg width="12" height="12" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+              Google sign-in — no password needed
+            </div>`
+          : `<div style="display:flex;align-items:center;gap:6px;flex:1;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px 8px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              <input type="text" class="form-input" style="border:none;background:transparent;padding:3px 0;font-size:12px;margin-bottom:0;flex:1;" placeholder="Set password" value="${s.adminPassword||''}" onchange="window.updateStudentField('${s.id}','adminPassword',this.value)" title="Password visible to admin only">
+            </div>`}
         <button class="btn btn-sm" style="background:rgba(3,146,207,0.1);color:var(--success);border:1px solid rgba(3,146,207,0.25);font-size:11px;" onclick="window.approveStudent('${s.id}')">✓ Approve</button>
         <button class="btn btn-danger btn-sm" onclick="window.deleteStudent('${s.id}')">Remove</button>
       </div>
