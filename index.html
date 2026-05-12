@@ -559,6 +559,10 @@
         </select>
       </div>
     </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:14px;cursor:pointer;">
+      <input type="checkbox" id="annShowInFeed" style="accent-color:var(--accent);">
+      Also show in Class Feed
+    </label>
     <button class="btn btn-primary" style="width:100%;" onclick="window.postAnnouncement()">Post Announcement</button>
     <div id="adminAnnouncementList" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;"></div>
   </div>
@@ -2023,6 +2027,9 @@ function startRealtimeListeners(){
   _listeners.push(onSnapshot(collection(db,'announcements'), snap=>{
     S.announcements=snap.docs.map(d=>({id:d.id,...d.data()}));
     try{renderCommunityAnnouncements();}catch(e){}
+    // Feed includes any announcement marked showInFeed, so a new admin post
+    // needs to re-render the feed immediately too.
+    try{renderCommunityFeed();}catch(e){}
   }));
 }
 
@@ -4596,16 +4603,18 @@ window.postAnnouncement=async()=>{
   const body=document.getElementById('annBody').value.trim();
   const pinned=document.getElementById('annPinned').value==='true';
   const audience=document.getElementById('annAudience').value;
+  const showInFeed=document.getElementById('annShowInFeed')?.checked||false;
   if(!title||!body){showToast('Please enter a title and message.');return;}
   const btn=document.querySelector('#sec-announcements .btn-primary');
   btn.disabled=true;btn.textContent='Posting...';
   try{
-    await addDoc(collection(db,'announcements'),{title,body,pinned,audience,createdAt:serverTimestamp(),postedBy:'Admin'});
+    await addDoc(collection(db,'announcements'),{title,body,pinned,audience,showInFeed,createdAt:serverTimestamp(),postedBy:'Admin'});
     document.getElementById('annTitle').value='';
     document.getElementById('annBody').value='';
     document.getElementById('annPinned').value='false';
+    const fc=document.getElementById('annShowInFeed'); if(fc) fc.checked=false;
     await fetchAnnouncements();
-    showToast('Announcement posted!');
+    showToast(showInFeed?'Announcement posted to Announcements + Class Feed!':'Announcement posted!');
   }catch(e){showToast('Error: '+e.message);}
   btn.disabled=false;btn.textContent='Post Announcement';
 };
@@ -4655,11 +4664,34 @@ function renderCommunityAnnouncements(){
 function renderCommunityFeed(){
   const el=document.getElementById('communityFeed'); if(!el)return;
   const studentCat=S.student?.category||'';
-  let all=[...S.uploads].sort((a,b)=>(b.createdAt?.seconds||b.submittedAt?.seconds||0)-(a.createdAt?.seconds||a.submittedAt?.seconds||0));
-  // Filter to same category only if student has one
-  if(studentCat) all=all.filter(u=>!u.category||u.category===studentCat);
-  if(!all.length){el.innerHTML='<p style="color:var(--muted);font-size:13px;">No submissions yet — be the first!</p>';return;}
-  el.innerHTML=all.map(u=>{
+  // Uploads (category-filtered) — tagged with kind:'upload' for merging.
+  let uploadItems=S.uploads.map(u=>({kind:'upload',data:u,ts:u.createdAt?.seconds||u.submittedAt?.seconds||0}));
+  if(studentCat) uploadItems=uploadItems.filter(it=>!it.data.category||it.data.category===studentCat);
+  // Announcements opted-in via "Also show in Class Feed", audience-filtered.
+  const annItems=(S.announcements||[])
+    .filter(a=>a.showInFeed && (a.audience==='all'||!a.audience||a.audience===studentCat))
+    .map(a=>({kind:'announcement',data:a,ts:a.createdAt?.seconds||0}));
+  const all=[...uploadItems,...annItems].sort((a,b)=>b.ts-a.ts);
+  if(!all.length){el.innerHTML='<p style="color:var(--muted);font-size:13px;">No posts yet — be the first!</p>';return;}
+  el.innerHTML=all.map(item=>{
+    if(item.kind==='announcement'){
+      const a=item.data;
+      const dateStr=a.createdAt?new Date(a.createdAt.seconds*1000).toLocaleDateString('en-SG',{day:'numeric',month:'short'}):'';
+      return `
+      <div style="background:rgba(238,64,53,0.06);border:1px solid rgba(238,64,53,0.18);border-left:3px solid var(--accent);border-radius:14px;padding:14px 16px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(238,64,53,0.15);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-7v16L3 13M11 19.5a2.5 2.5 0 01-5 0V13"/></svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px;flex-wrap:wrap;">${a.title}${a.pinned?'<span style="font-size:9px;background:rgba(238,64,53,0.12);color:var(--accent);padding:2px 7px;border-radius:4px;font-weight:600;">Pinned</span>':''}</div>
+            <div style="font-size:11px;color:var(--muted);">Admin${dateStr?' · '+dateStr:''}</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;">${a.body}</div>
+      </div>`;
+    }
+    const u=item.data;
     const likes=u.likes||{};
     const likeCount=Object.keys(likes).length;
     const hasLiked=S.student&&likes[S.student.id];
