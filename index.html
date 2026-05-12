@@ -2025,7 +2025,9 @@ function startRealtimeListeners(){
   // Songs/resources
   _listeners.push(onSnapshot(collection(db,'songs'), snap=>{
     S.songs=snap.docs.map(d=>({id:d.id,...d.data()}));
-    try{renderResourcesPage();}catch(e){}
+    // renderResourcesPage early-returns when !S.student anyway; this gate
+    // documents the intent and saves DOM work in the boot-before-login race.
+    if(S.student) try{renderResourcesPage();}catch(e){}
     try{renderAdminSongList();}catch(e){}
     try{document.getElementById('statSongs')&&(document.getElementById('statSongs').textContent=S.songs.length);}catch(e){}
   }));
@@ -3061,6 +3063,12 @@ window.studentLogin2=async()=>{
     document.getElementById('learnerNavBtn').classList.add('active');
     setPageStore('learner');
 
+    // Ensure realtime listeners are active for this session (idempotent —
+    // startRealtimeListeners unsubscribes existing listeners first).
+    try{ startRealtimeListeners(); }catch(e){}
+    // Force-refresh S.songs etc. before rendering so the student doesn't
+    // momentarily see an empty grid while the boot fetch is still in flight.
+    try{ await fetchAll(true); }catch(e){}
     // Render tabs
     try{switchLearnerTab('myresources',document.getElementById('ltab-myresources'));}catch(e){}
     try{renderResourcesPage();}catch(e){}
@@ -3069,6 +3077,10 @@ window.studentLogin2=async()=>{
     try{renderQuickStats();}catch(e){}
     try{setLearnerGreeting();}catch(e){}
     try{renderBulkMessageBanner();}catch(e){}
+    // Defensive second render — if S.songs was still loading at the first
+    // render (race with the realtime listener / fetchAll), 500ms gives both
+    // a chance to settle before re-rendering with full data.
+    setTimeout(()=>{ try{renderResourcesPage();}catch(e){} }, 500);
     setTimeout(()=>{
       try{renderPracticeTools();}catch(e){}
       try{renderChordLibrary();}catch(e){}
@@ -3303,6 +3315,11 @@ async function loadStudentProfile(uid){
     document.getElementById('learnerNavBtn').classList.add('active');
     setPageStore('learner');
 
+    // Ensure realtime listeners are active and S.songs is populated before
+    // first render — defends against the case where the 2s boot setTimeout
+    // hasn't fired yet, or fetchAll is still in flight at first login.
+    try{ startRealtimeListeners(); }catch(e){}
+    try{ await fetchAll(true); }catch(e){}
     try{switchLearnerTab('myresources',document.getElementById('ltab-myresources'));}catch(e){}
     try{renderResourcesPage();}catch(e){}
     try{renderLearnerMySubmissions();}catch(e){}
@@ -3310,6 +3327,10 @@ async function loadStudentProfile(uid){
     try{renderQuickStats();}catch(e){}
     try{setLearnerGreeting();}catch(e){}
     try{renderBulkMessageBanner();}catch(e){}
+    // Defensive second render — if S.songs was still loading at the first
+    // render (race with the realtime listener / fetchAll), 500ms gives both
+    // a chance to settle before re-rendering with full data.
+    setTimeout(()=>{ try{renderResourcesPage();}catch(e){} }, 500);
     setTimeout(()=>{
       try{renderPracticeTools();}catch(e){}
       try{renderChordLibrary();}catch(e){}
