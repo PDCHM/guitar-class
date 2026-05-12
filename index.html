@@ -1710,7 +1710,9 @@ window.adminAddFac=async()=>{
 };
 
 window.adminDeleteFac=async(id)=>{
-  if(!confirm('Remove this facilitator?'))return;
+  const fac=S.facilitators.find(f=>f.id===id);
+  const name=fac?.name||'this facilitator';
+  if(!confirm(`Delete "${name}"? This cannot be undone.`))return;
   await deleteDoc(doc(db,'facilitators',id));
   await fetchAll(true);
   showToast('Removed.');
@@ -2471,7 +2473,8 @@ window.cancelEditSong=()=>{
 
 window.deleteSong=async id=>{
   const s=S.songs.find(x=>x.id===id);
-  if(!s||!confirm(`Delete "${s.title}"?`))return;
+  if(!s)return;
+  if(!confirm(`Delete "${s.title}"? This cannot be undone.`))return;
   await deleteDoc(doc(db,'songs',id));
   if(S.editingId===id) cancelEditSong();
   showToast('Song deleted.'); await fetchAll(true);
@@ -2505,7 +2508,7 @@ window.adminAddCat=async()=>{
 
 window.deleteCat=async id=>{
   const cat=S.categories.find(c=>c.id===id);
-  if(!confirm(`Delete "${cat?cat.name:'this category'}"?\n\nOnce deleted, it cannot be retrieved.`)) return;
+  if(!confirm(`Delete "${cat?cat.name:'this category'}"? This cannot be undone.`)) return;
   await deleteDoc(doc(db,'categories',id));
   await fetchCats(); showToast('Category deleted.');
 };
@@ -2678,7 +2681,9 @@ window.approveUpload=async id=>{
 };
 
 window.deleteUpload=async id=>{
-  if(!confirm('Delete this recording?\n\nThis cannot be undone.')) return;
+  const u=S.uploads.find(x=>x.id===id);
+  const label=u?.submittedBy?`recording by "${u.submittedBy}"`:u?.fileName?`"${u.fileName}"`:'this recording';
+  if(!confirm(`Delete ${label}? This cannot be undone.`)) return;
   await deleteDoc(doc(db,'uploads',id));
   await fetchAll(true); showToast('Deleted.');
 };
@@ -2717,7 +2722,7 @@ window.adminAddLesson=async()=>{
 
 window.deleteLesson=async id=>{
   const lesson=S.lessons.find(l=>l.id===id);
-  if(!confirm(`Delete "${lesson?lesson.name:'this lesson'}"?\n\nOnce deleted, it cannot be retrieved.`)) return;
+  if(!confirm(`Delete "${lesson?lesson.name:'this lesson'}"? This cannot be undone.`)) return;
   await deleteDoc(doc(db,'lessons',id));
   await fetchAll(true); showToast('Lesson deleted.');
 };
@@ -3522,7 +3527,7 @@ window.approveStudent=async(id)=>{
 window.deleteStudent=async(id)=>{
   const student=S.students.find(s=>s.id===id);
   const name=student?.name||'this student';
-  if(!confirm(`Remove "${name}" from the class?\n\nThis will delete their profile and cannot be undone.\nNote: Their login account will remain but they will lose access.`))return;
+  if(!confirm(`Delete "${name}"? This cannot be undone.\nTheir login account will remain but they will lose access.`))return;
   try{
     await deleteDoc(doc(db,'students',id));
     await fetchStudents();
@@ -3996,7 +4001,7 @@ window.addPattern=async(type)=>{
 
 // Delete pattern with confirm prompt
 window.deletePattern=async(id, type, name)=>{
-  if(!confirm(`Remove "${name}"?\n\nThis will permanently delete this pattern and its video link. This cannot be undone.`))return;
+  if(!confirm(`Delete "${name}"? This cannot be undone.\nThe pattern and its video link will be permanently removed.`))return;
   try{
     await deleteDoc(doc(db,'practicePatterns',id));
     delete PATTERN_VIDEOS[id];
@@ -4153,7 +4158,9 @@ window.postAnnouncement=async()=>{
 };
 
 window.deleteAnnouncement=async(id)=>{
-  if(!confirm('Delete this announcement?'))return;
+  const ann=S.announcements.find(a=>a.id===id);
+  const title=ann?.title||'this announcement';
+  if(!confirm(`Delete "${title}"? This cannot be undone.`))return;
   await deleteDoc(doc(db,'announcements',id));
   await fetchAnnouncements();
   showToast('Deleted.');
@@ -4716,7 +4723,7 @@ window.submitPracticeLog=async()=>{
 };
 
 window.deletePracticeLog=async(id)=>{
-  if(!confirm('Remove this practice log entry?'))return;
+  if(!confirm('Delete this practice log entry? This cannot be undone.'))return;
   try{
     await deleteDoc(doc(db,'practiceLogs',id));
     renderPracticeLog();
@@ -4812,7 +4819,7 @@ window.saveLessonPlan=async()=>{
 };
 
 window.deleteLessonPlan=async(id,date)=>{
-  if(!confirm(`Remove lesson plan for ${date}?`))return;
+  if(!confirm(`Delete lesson plan for ${date}? This cannot be undone.`))return;
   try{await deleteDoc(doc(db,'lessonPlans',id));renderLessonPlan();showToast('Plan removed.');}
   catch(e){showToast('Error: '+e.message);}
 };
@@ -4958,7 +4965,7 @@ window.deleteChallenge=async(id)=>{
   // Find title from rendered data
   const btn=document.querySelector(`#challengeHistory [onclick*="${id}"]`);
   const title=btn?.closest('div')?.querySelector('div')?.textContent||'this challenge';
-  if(!confirm(`Remove "${title}"?\nThis cannot be undone.`))return;
+  if(!confirm(`Delete "${title}"? This cannot be undone.`))return;
   try{await deleteDoc(doc(db,'challenges',id));renderChallengeHistory();showToast('Challenge removed.');}
   catch(e){showToast('Error: '+e.message);}
 };
@@ -5011,7 +5018,7 @@ async function renderSongRequestsAdmin(){
           <option value="noted" ${r.status==='noted'?'selected':''}>Noted 👀</option>
           <option value="done" ${r.status==='done'?'selected':''}>Added ✅</option>
         </select>
-        <button onclick="window.deleteSongRequest('${r.id}')" class="btn btn-danger btn-sm">Remove</button>
+        <button onclick="window.deleteSongRequest('${r.id}',${JSON.stringify(r.song||'')})" class="btn btn-danger btn-sm">Remove</button>
       </div>`).join('');
   }catch(e){}
 }
@@ -5021,8 +5028,9 @@ window.updateSongRequest=async(id,status)=>{
   catch(e){showToast('Error: '+e.message);}
 };
 
-window.deleteSongRequest=async(id)=>{
-  if(!confirm('Remove this song request?'))return;
+window.deleteSongRequest=async(id,song)=>{
+  const label=song?`"${song}"`:'this song request';
+  if(!confirm(`Delete ${label}? This cannot be undone.`))return;
   try{await deleteDoc(doc(db,'songRequests',id));renderSongRequestsAdmin();showToast('Request removed.');}
   catch(e){showToast('Error: '+e.message);}
 };
@@ -5191,7 +5199,7 @@ window.saveProgression=async()=>{
 
 window.deleteProgression=async(id)=>{
   const p=PROGRESSIONS.find(p=>p.id===id);
-  if(!confirm(`Remove "${p?.name||'this progression'}"?\nThis cannot be undone.`))return;
+  if(!confirm(`Delete "${p?.name||'this progression'}"? This cannot be undone.`))return;
   try{
     await deleteDoc(doc(db,'chordProgressions',id));
     PROGRESSIONS=PROGRESSIONS.filter(p=>p.id!==id);
