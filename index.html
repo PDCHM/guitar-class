@@ -2263,6 +2263,15 @@ window.openPart=(songId,partRef)=>{
 };
 
 window.openPartModal=(songId,partName,url)=>{
+  // Defensive: Cloudinary raw uploads (PDFs, arbitrary file types) can't be
+  // reliably embedded in our modal. Skip the modal entirely and open in a
+  // new tab so the browser handles rendering. This covers any caller that
+  // reaches openPartModal directly with a raw URL, even though openPart
+  // now routes raw URLs straight to window.open before getting here.
+  if(url && url.includes('/raw/upload/')){
+    window.open(url, '_blank', 'noopener,noreferrer');
+    return;
+  }
   const s=S.songs.find(x=>x.id===songId); if(!s)return;
   document.getElementById('partModalTitle').textContent=`${s.title} — ${partName}`;
   let html=`<div style="margin-bottom:14px;"><span class="part-chip chip-tenor" style="font-size:13px;padding:6px 14px;">${partName}</span></div>`;
